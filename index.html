@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIRROR — A Profiler's Codex</title>
+<style>
+/* ============================================================
+   MIRROR — monochrome editorial codex, Steve Jobs-era iOS skin.
+   Palette: black ink, white paper, grays only. No emojis.
+   ============================================================ */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root{
+  --ink:#111; --paper:#fdfdfb; --hair:#c9c7c2; --mid:#777;
+}
+html,body{ height:100%; }
+body{
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:var(--ink);
+  background:#e9e7e2; /* linen */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.014) 0 1px, transparent 1px 3px);
+  overflow-x:hidden;
+}
+/* ---------- glossy black iOS-6 nav bar ---------- */
+.navbar{
+  position:sticky; top:0; z-index:50; height:46px;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(#6a6a6a 0%, #3a3a3a 48%, #161616 52%, #000 100%);
+  border-bottom:1px solid #000;
+  box-shadow:0 1px 0 rgba(255,255,255,.28) inset, 0 2px 8px rgba(0,0,0,.35);
+}
+.navbar h1{
+  font-size:15px; letter-spacing:.35em; font-weight:700; color:#f4f4f4;
+  text-shadow:0 -1px 0 #000; text-transform:uppercase;
+}
+.nav-back{
+  position:absolute; left:10px; top:7px; display:none;
+  font-size:12px; letter-spacing:.12em; color:#eee; background:none;
+  border:1px solid rgba(255,255,255,.35); border-radius:6px; padding:5px 10px;
+  cursor:pointer; text-shadow:0 -1px 0 #000;
+}
+.nav-back:active{ background:rgba(255,255,255,.12); }
+/* ---------- screens ---------- */
+.screen{ display:none; max-width:640px; margin:0 auto; padding:26px 16px 60px;
+  animation:slideIn .35s cubic-bezier(.25,.8,.3,1); }
+.screen.on{ display:block; }
+@keyframes slideIn{ from{ opacity:0; transform:translateX(28px);} to{ opacity:1; transform:none;} }
+/* ---------- home ---------- */
+.brand{ text-align:center; padding:64px 10px 40px; }
+.brand .word{ font-size:52px; font-weight:800; letter-spacing:.3em; text-indent:.3em; }
+.brand .rule{ width:120px; height:1px; background:var(--ink); margin:22px auto; }
+.brand .sub{ font-family:Georgia,"Times New Roman",serif; font-style:italic;
+  color:#444; font-size:15px; line-height:1.7; max-width:400px; margin:0 auto; }
+.gloss-btn{
+  display:block; width:100%; max-width:340px; margin:14px auto; padding:15px 0;
+  font-size:13px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
+  color:#fff; text-shadow:0 -1px 0 #000; text-align:center; cursor:pointer;
+  background:linear-gradient(#7c7c7c 0%, #3d3d3d 50%, #101010 51%, #262626 100%);
+  border:1px solid #000; border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 2px 6px rgba(0,0,0,.35);
+}
+.gloss-btn:active{ transform:translateY(1px);
+  background:linear-gradient(#4a4a4a 0%, #1a1a1a 50%, #000 51%, #101010 100%); }
+.gloss-btn.ghost{
+  color:var(--ink); text-shadow:0 1px 0 #fff;
+  background:linear-gradient(#ffffff 0%, #e8e8e8 50%, #cfcfcf 51%, #e2e2e2 100%);
+  border:1px solid #a9a9a9;
+  box-shadow:inset 0 1px 0 #fff, 0 1px 3px rgba(0,0,0,.2);
+}
+.fineprint{ text-align:center; color:var(--mid); font-size:11px; letter-spacing:.08em;
+  margin-top:34px; line-height:1.8; }
+/* ---------- grouped iOS table cells ---------- */
+.group{
+  background:var(--paper); border:1px solid #b9b7b2; border-radius:11px;
+  box-shadow:0 1px 3px rgba(0,0,0,.14), inset 0 1px 0 #fff; overflow:hidden;
+  margin-bottom:26px;
+}
+.group-title{ font-size:11px; letter-spacing:.3em; color:var(--mid);
+  text-transform:uppercase; margin:0 4px 8px; }
+.cell{
+  position:relative; padding:14px 34px 14px 14px; border-bottom:1px solid #e3e1dc;
+  cursor:pointer; transition:background .15s;
+}
+.cell:last-child{ border-bottom:none; }
+.cell:active{ background:#e9e9e9; }
+.cell .nm{ font-size:14px; font-weight:700; letter-spacing:.06em; }
+.cell .ep{ font-family:Georgia,serif; font-style:italic; font-size:12px; color:#666; margin-top:3px; }
+.cell::after{ content:"›"; position:absolute; right:14px; top:50%;
+  transform:translateY(-50%); color:#9a9a9a; font-size:20px; font-weight:300; }
+.cell.static::after{ content:""; }
+/* ---------- search ---------- */
+.search-wrap{ margin-bottom:22px; }
+#search{
+  width:100%; padding:11px 14px; font-size:14px; border:1px solid #b3b1ac;
+  border-radius:10px; outline:none; background:#f4f3f0;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.08);
+}
+#search:focus{ background:#fff; border-color:#888; }
+.no-results{ text-align:center; color:var(--mid); font-size:12px;
+  letter-spacing:.15em; padding:30px 0; display:none; }
+/* ---------- entry detail ---------- */
+.entry-head{ text-align:center; padding:10px 6px 24px; }
+.entry-cat{ font-size:10px; letter-spacing:.35em; color:var(--mid); text-transform:uppercase; }
+.entry-name{ font-size:30px; font-weight:800; letter-spacing:.12em; margin:10px 0 14px; }
+.entry-ep{ font-family:Georgia,serif; font-style:italic; font-size:15px; color:#333;
+  line-height:1.7; max-width:440px; margin:0 auto; }
+.hairline{ width:70px; height:1px; background:var(--ink); margin:22px auto 0; }
+.section{ margin-bottom:20px; }
+.section h3{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--mid);
+  border-bottom:1px solid var(--hair); padding-bottom:6px; margin-bottom:10px; }
+.section p, .section li{ font-size:14px; line-height:1.75; }
+.section ul{ list-style:none; }
+.section li{ padding:3px 0 3px 16px; position:relative; }
+.section li::before{ content:"—"; position:absolute; left:0; color:#999; }
+.tri{ display:grid; grid-template-columns:1fr; gap:10px; }
+.tri div{ border:1px solid var(--hair); border-radius:8px; padding:10px 12px; background:#fff; }
+.tri b{ display:block; font-size:10px; letter-spacing:.25em; color:var(--mid); margin-bottom:4px; }
+.prof-note{ font-family:Georgia,serif; font-style:italic; color:#444; text-align:center;
+  border-top:1px solid var(--hair); border-bottom:1px solid var(--hair);
+  padding:12px 8px; margin:22px 0; font-size:13px; }
+.link-chip{ display:inline-block; font-size:11px; letter-spacing:.1em; border:1px solid #999;
+  border-radius:20px; padding:5px 12px; margin:3px 4px 0 0; cursor:pointer; background:#fff; }
+.link-chip:active{ background:#ddd; }
+/* ---------- quiz ---------- */
+.progress-shell{ height:14px; border-radius:8px; border:1px solid #a5a3a0;
+  background:linear-gradient(#d2d0cc,#e8e7e4); box-shadow:inset 0 1px 3px rgba(0,0,0,.2);
+  overflow:hidden; margin-bottom:6px; }
+.progress-fill{ height:100%; width:0%;
+  background:linear-gradient(#8a8a8a 0%, #3f3f3f 50%, #151515 51%, #333 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35); transition:width .4s ease; }
+.q-count{ text-align:center; font-size:10px; letter-spacing:.3em; color:var(--mid);
+  text-transform:uppercase; margin-bottom:22px; }
+.q-card{ background:var(--paper); border:1px solid #b9b7b2; border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15); padding:24px 18px; margin-bottom:18px;
+  animation:slideIn .3s ease; }
+.q-text{ font-size:17px; line-height:1.65; font-weight:600; }
+.q-card.strike{ background:#0d0d0d; color:#f2f2f2; border-color:#000; }
+.q-card.strike .q-text{ font-family:Georgia,serif; font-style:italic; font-weight:400; }
+.strike-tag{ font-size:9px; letter-spacing:.35em; color:#999; text-transform:uppercase;
+  display:block; margin-bottom:12px; }
+.opt{ margin-bottom:10px; }
+.opt .cell{ padding:13px 14px; border:1px solid #cfcdc8; border-radius:9px; background:#fff; }
+.opt .cell::after{ content:""; }
+.opt .cell:active{ background:#111; color:#fff; }
+.opt .cell:active .ep{ color:#bbb; }
+/* ---------- scan overlay ---------- */
+#scan{ position:fixed; inset:0; background:#050505; z-index:100; display:none;
+  color:#e8e8e8; font-family:"Courier New",monospace; padding:60px 30px; }
+#scan .lines{ font-size:12px; letter-spacing:.15em; line-height:2.2; }
+#scan .scanline{ position:fixed; left:0; right:0; height:2px; background:rgba(255,255,255,.5);
+  animation:scanmove 1.1s linear infinite; }
+@keyframes scanmove{ 0%{ top:0; } 100%{ top:100%; } }
+/* ---------- verdict ---------- */
+.verdict-stamp{ text-align:center; padding:16px 0 6px; }
+.stamp{ display:inline-block; border:3px double var(--ink); padding:8px 22px;
+  font-size:13px; letter-spacing:.4em; font-weight:800; transform:rotate(-2deg); }
+.blend{ text-align:center; margin:26px 0 6px; }
+.blend .big{ font-size:24px; font-weight:800; letter-spacing:.08em; }
+.blend .pair{ font-family:Georgia,serif; font-style:italic; color:#444; margin-top:6px; }
+.blend-bar{ display:flex; height:12px; border-radius:7px; overflow:hidden;
+  border:1px solid #999; margin:14px auto; max-width:420px; }
+.blend-bar .a{ background:#111; } .blend-bar .b{ background:#b9b9b9; }
+#radar{ display:block; margin:10px auto; }
+.detect{ background:#0d0d0d; color:#eee; border-radius:11px; padding:18px 16px; margin:16px 0; }
+.detect h3{ color:#999; border-color:#333; }
+.detect p{ font-size:13.5px; line-height:1.8; margin-bottom:10px; }
+.detect p b{ color:#fff; letter-spacing:.1em; }
+.disclaimer{ font-family:Georgia,serif; font-style:italic; font-size:13px; color:#333;
+  line-height:1.8; text-align:center; border-top:1px solid var(--ink);
+  border-bottom:1px solid var(--ink); padding:16px 10px; margin:26px 0; }
+.stat-row{ text-align:center; font-size:10px; letter-spacing:.25em; color:var(--mid);
+  text-transform:uppercase; margin:14px 0; }
+</style>
+</head>
+<body>
+<div class="navbar">
+  <button class="nav-back" id="navBack" onclick="goBack()">‹ BACK</button>
+  <h1 id="navTitle">MIRROR</h1>
+</div>
+
+<!-- ================= HOME ================= -->
+<div class="screen on" id="scr-home">
+  <div class="brand">
+    <div class="word">MIRROR</div>
+    <div class="rule"></div>
+    <div class="sub">A profiler's grimoire of human psychology.<br>
+    It watches what you do, not what you say.<br>
+    It knows the pattern before you do.</div>
+  </div>
+  <button class="gloss-btn" onclick="startQuiz()">Begin the Reading</button>
+  <button class="gloss-btn ghost" onclick="show('scr-codex')">Enter the Codex</button>
+  <div class="fineprint">32 SCENARIOS &nbsp;·&nbsp; 31 ENTRIES &nbsp;·&nbsp; ONE VERDICT<br>
+  an educated read, never a diagnosis</div>
+</div>
+
+<!-- ================= CODEX ================= -->
+<div class="screen" id="scr-codex">
+  <div class="search-wrap">
+    <input id="search" type="text" placeholder="Search the codex — try &quot;leave first&quot;, &quot;daddy issues&quot;, &quot;can't sit still&quot;" oninput="renderCodex()">
+  </div>
+  <div id="codexList"></div>
+  <div class="no-results" id="noRes">NOTHING IN THE CODEX ANSWERS TO THAT NAME</div>
+</div>
+
+<!-- ================= ENTRY DETAIL ================= -->
+<div class="screen" id="scr-entry">
+  <div id="entryBody"></div>
+</div>
+
+<!-- ================= QUIZ ================= -->
+<div class="screen" id="scr-quiz">
+  <div class="progress-shell"><div class="progress-fill" id="pfill"></div></div>
+  <div class="q-count" id="qcount"></div>
+  <div class="q-card" id="qcard"><div class="q-text" id="qtext"></div></div>
+  <div id="opts"></div>
+</div>
+
+<!-- ================= VERDICT ================= -->
+<div class="screen" id="scr-verdict">
+  <div id="verdictBody"></div>
+</div>
+
+<!-- fake scan overlay -->
+<div id="scan"><div class="scanline"></div><div class="lines" id="scanLines"></div></div>
+
+<script>
+/* ============================================================
+   MIRROR — the reading engine. Plain JS, commented for humans.
+   Data model:
+   ENTRIES  : the codex library (31 entries)
+   QUESTIONS: 32 scenario questions, each option secretly scores
+              archetypes (a), attachment (t), wounds (w),
+              clinical patterns (c) and radar axes (x)
+   STRIKES  : off-script questions fired by signature answer pairs
+   ============================================================ */
+
+/* ---------- THE CODEX ----------
+   n:name ep:epigraph es:essence st:strengths wk:weaknesses
+   lv/fr/ht: loves/fears/hates  sp:how to spot  rw:raise·love·work·negotiate
+   bl:blind spot  or:origin  lk:cross-links  kw:search keywords  clin:clinical */
+const ENTRIES=[
+{id:"strategist",cat:"ARCHETYPES",n:"THE STRATEGIST",ep:"Everyone else is playing checkers. They are playing the person across from them.",
+es:"Life processed as a board: every room has incentives, every person has a price or a pattern, and the first one to feel something loses the thread. Detachment is the method; control is the goal.",
+st:["Foresight — they see the second and third consequence","Calm under pressure; panic is a leak they sealed years ago","Reads motives faster than most people read menus"],
+wk:["Intimacy feels like exposure; people quietly become pieces","Over-plans things that only needed honesty","Wins arguments and loses dinners"],
+lv:"Control — of the board, the narrative, themselves",fr:"Being predictable; being read the way they read others",ht:"Wasted moves — and people who make them",
+sp:["Asks questions that map your motives, answers none cleanly","Never caught off-guard twice by the same thing","Their warmth has a schedule and a purpose"],
+rw:["Raise: never lie to them; they will know, and the file never closes","Love: say the quiet thing directly — they respect nerve over charm","Work: give them the problem, not the procedure","Negotiate: show your hand first; they pay for certainty"],
+bl:"They believe their detachment is superiority. It is often fear with excellent branding.",
+or:"An unpredictable house — a mood, a temper, a chaos — where safety lived three moves ahead of everyone else.",
+lk:["opportunist","narcissist","avoidant","stoic"],kw:["chess","planner","calculating","cold","mastermind","control"]},
+
+{id:"idealist",cat:"ARCHETYPES",n:"THE IDEALIST",ep:"They don't fall in love with people. They fall in love with what people could be.",
+es:"They carry a private blueprint of how the world should be, and reality keeps failing the audition. The gap between the two is where they live — and where they hurt.",
+st:["Vision — they see the better version of everything, instantly","Devotion once committed; they do nothing at half volume","Moral courage that confuses pragmatists"],
+wk:["Chronic disappointment in decent, ordinary people","All-or-nothing: adored or discarded, rarely in between","Bores easily once the potential is realized"],
+lv:"Meaning — work, love and mornings that point at something",fr:"That the cynics are right; that nothing means anything",ht:"Cynicism — because part of them finds it convincing",
+sp:["Says 'imagine if' unironically, often","Defends strangers; crushed by small betrayals","Their praise is enormous and their silence is a verdict"],
+rw:["Raise: never mock the dream; redirect it, don't deflate it","Love: be honest early — they forgive flaws, not discoveries","Work: point the mission at the task or lose them","Negotiate: appeal to the principle, never just the price"],
+bl:"Their suffering is self-manufactured in the gap between blueprint and reality — and they keep widening the gap.",
+or:"A childhood where ideals were the safest room: books, faith, or a parent who preached values they didn't live.",
+lk:["nihilist","optimist","limerence","artist"],kw:["dreamer","romantic","principles","cause","hopeless romantic"]},
+
+{id:"nihilist",cat:"ARCHETYPES",n:"THE NIHILIST",ep:"They figured out the game is rigged and mistook that for winning it.",
+es:"Meaning collapsed once, early, and now they pre-collapse everything — because you cannot take anything from someone who already dropped it. The apathy is not absence. It is defense.",
+st:["Immune to hype, trends and salesmanship","Sees through pretense at a glance","Honest in a way that stings and occasionally heals"],
+wk:["Uses 'nothing matters' to avoid wanting anything","Mistakes numbness for clarity","Withdraws from people who were actually safe"],
+lv:"Being right about the void",fr:"Secretly wanting something — and being seen wanting it",ht:"Sincerity; it embarrasses them",
+sp:["Jokes at funerals; 'whatever' deployed as philosophy","Works surprisingly hard for someone who claims not to care","Cares about exactly one thing and guards it like evidence"],
+rw:["Raise: don't force enthusiasm; notice the one thing they protect","Love: stay consistent — their trust is a glacier, not a switch","Work: give them the problem that matters or accept the minimum","Negotiate: skip the vision pitch; show the numbers"],
+bl:"Apathy is effort. Maintaining the void is a full-time job — caring leaked out of them long ago, and the act is maintenance.",
+or:"An early betrayal of meaning — a promise broken, a death unexplained, a god that didn't answer.",
+lk:["strategist","idealist","cptsd","avoidant"],kw:["nothing matters","cynic","void","apathy","sarcastic","dark humor"]},
+
+{id:"optimist",cat:"ARCHETYPES",n:"THE OPTIMIST",ep:"Hope is their talent. It is also their hiding place.",
+es:"They refuse the finality of bad news and reframe on reflex. Genuine resilience — and, sometimes, a floodlight aimed away from something they have never looked at directly.",
+st:["Recovers faster than anyone in the room","A morale engine; teams orbit them","Finds the usable scrap in any wreckage"],
+wk:["Toxic positivity — cannot sit with unfixable pain, theirs or yours","Underestimates how bad things are until the bill arrives","Grief deferred collects interest"],
+lv:"Momentum — forward is the only direction that feels safe",fr:"Stillness; that is where the grief lives",ht:"'Negative people' — they are allergic to their own reflection",
+sp:["Says 'it'll work out' before you finish the sentence","Gets restless around sustained sadness","The smile arrives first and the eyes check in later"],
+rw:["Raise: teach them sadness is data, not failure","Love: don't let them fix your pain; make them sit in it with you","Work: put them at the front of the room, never on the post-mortem alone","Negotiate: they fold for harmony; don't exploit it"],
+bl:"The brightness is sometimes a strategy, and strategies can be exhausted.",
+or:"Often the family's mood-manager — the kid who kept everyone laughing so the house didn't fall down.",
+lk:["caregiver","codependent","idealist"],kw:["positive","happy","toxic positivity","cheerful","silver lining"]},
+
+{id:"perfectionist",cat:"ARCHETYPES",n:"THE PERFECTIONIST",ep:"Ninety-nine percent feels like a confession.",
+es:"Worth was made conditional early, so now they audit themselves before the world gets the chance. The standard isn't excellence. The standard is safety.",
+st:["Reliability that borders on the supernatural","Craft — details nobody else notices, polished anyway","Standards that quietly raise every room they enter"],
+wk:["Procrastination disguised as preparation","Cannot finish, because finished can be judged","Praise bounces off; criticism is absorbed like nutrients"],
+lv:"The clean win — unarguable, airtight",fr:"Being caught mediocre; being exposed as ordinary",ht:"'Good enough' — two words that feel like a slur",
+sp:["Apologizes for work everyone else praises","Redoes what was already done","A resume with impostor syndrome attached"],
+rw:["Raise: praise the effort publicly, the result quietly","Love: tell them they are enough on a Tuesday, for nothing","Work: deadlines with definition of done, or they will polish forever","Negotiate: they fold on details; win the principle, concede the commas"],
+bl:"The standard keeps moving because the point was never the standard. The point is staying safe.",
+or:"Love with terms and conditions — praise that arrived with results and left with mistakes.",
+lk:["conditional","ocd","strategist","golden"],kw:["impostor","not good enough","perfection","straight a","overachiever"]},
+
+{id:"opportunist",cat:"ARCHETYPES",n:"THE OPPORTUNIST",ep:"They don't break the rules. They read them for loopholes.",
+es:"The world is a market and every room has an exit and an angle. They are not immoral — they are liquid. They flow toward advantage the way water flows downhill.",
+st:["Adaptability — lands on their feet in any country, any crisis","Nerve; they ask for things others only rehearse","Spots the opening before the room knows there is one"],
+wk:["Loyalty with a price tag; relationships quietly audited","Trust is hard to build with someone measuring your usefulness","Burns bridges for warmth, then misses the bridges"],
+lv:"An opening — a window, a gap, a soft spot in the system",fr:"Being ordinary; being trapped",ht:"Waiting their turn",
+sp:["Name-drops within four minutes","Remembers what you can do for them before your birthday","Gone before the check arrives"],
+rw:["Raise: make honesty profitable early; punish the lie, not the hustle","Love: they test whether you'd stay poor with them — pass it","Work: commission structures were invented for this person","Negotiate: never show urgency; they price it"],
+bl:"Everyone eventually notices the ledger. The accounts they keep are kept on them, too.",
+or:"Scarcity — of money, attention, or safety — taught them that windows close and nobody hands you anything.",
+lk:["strategist","manipulator","narcissist"],kw:["hustler","networking","user","social climber","opportunist"]},
+
+{id:"traditionalist",cat:"ARCHETYPES",n:"THE TRADITIONALIST",ep:"They didn't inherit the rules. They volunteered to guard them.",
+es:"Order is safety. The old ways carried people through wars, winters and weddings, so deviation doesn't read as progress — it reads as danger.",
+st:["Duty — they show up, forever, without being asked twice","Stability; they are the load-bearing wall of every family","Keeps the promises and the recipes"],
+wk:["Confuses familiar with right; change feels like betrayal","Can enforce rules whose reasons died decades ago","Struggles to love people who live unrecognizable lives"],
+lv:"Continuity — the table set the same way every year",fr:"Chaos, and quietly, becoming irrelevant",ht:"People who 'make it up as they go'",
+sp:["Says 'we've always done it this way' as a complete argument","Ritualizes holidays with military precision","Quietly keeps the entire family functioning and slightly resents it"],
+rw:["Raise: explain the reason behind the rule or they will obey it forever","Love: respect the rituals; they are the love language","Work: give them custody of the process, not the pivot","Negotiate: precedent is your strongest card; novelty is your weakest"],
+bl:"They are loyal to a past that may never have happened the way they tell it.",
+or:"A house where rules were the walls — or a chaos where rules were the only shelter available.",
+lk:["perfectionist","ocd","caregiver"],kw:["old fashioned","conservative","rules","family values","discipline"]},
+
+{id:"artist",cat:"ARCHETYPES",n:"THE ARTIST",ep:"They feel at a volume most people never reach — and pay full price for it.",
+es:"Sensitivity is the instrument and the wound. They translate inner weather into form — music, images, words, rooms — because keeping it inside is not survivable.",
+st:["Emotional x-ray; they notice what everyone else walked past","Originality — the connection nobody saw until they made it","Depth that makes ordinary conversation feel like wading"],
+wk:["Mood-dependent output; inspiration keeps no schedule","Criticism lands like injury because the work and the self are one thing","Disappears mid-project, mid-conversation, mid-relationship"],
+lv:"Resonance — being felt, exactly, by another person",fr:"Being ordinary; drying up",ht:"Small talk and deadlines on the soul",
+sp:["Notices light, tone and subtext before content","Overshares or vanishes; no middle setting","Their home says more than their mouth"],
+rw:["Raise: never grade the art; ask what it means","Love: love the work too — it is not a rival, it is a doorway","Work: autonomy and a real deadline; nothing else functions","Negotiate: appeal to the vision; they underprice themselves anyway"],
+bl:"They believe the pain makes the art. The art usually survives the pain just fine — but they would never risk finding out.",
+or:"A childhood where feelings were too big for the house, so expression became the only room they fit in.",
+lk:["idealist","rsd","limerence","nihilist"],kw:["creative","sensitive","musician","writer","painter","tortured"]},
+
+{id:"caregiver",cat:"ARCHETYPES",n:"THE CAREGIVER",ep:"Everyone's emergency contact. Nobody's first thought.",
+es:"Love equals usefulness. They learned their place in the ecosystem early: the helper, the reliable one, the person who absorbs. Their own needs were never on the org chart.",
+st:["Attunement — they feel the room shift before anyone speaks","Endurance; they outlast every crisis and every crisis-haver","Genuinely competent when things fall apart"],
+wk:["Cannot receive; help given to them feels like debt","Resentment under the apron, never voiced, always accruing","Disappears into other people's emergencies"],
+lv:"Being needed — it is the only currency that has ever cleared",fr:"Being useless, which they believe equals being left",ht:"Asking for anything",
+sp:["Deflects compliments into tasks","Knows everyone's coffee order; nobody knows theirs","Says 'I'm fine' on a loop, in a voice that isn't"],
+rw:["Raise: thank them for existing, not for helping","Love: care for them first and repeatedly; they will resist, continue","Work: cap their load; they will not","Negotiate: they give everything away; be the one who doesn't take it"],
+bl:"Helping can be control in a soft costume — if you need them, you cannot leave.",
+or:"Parentification, or a sick or sad parent. The child who became the nurse, the spouse, or the therapist.",
+lk:["parentified","codependent","optimist"],kw:["helper","people pleaser","nurse","martyr","selfless"]},
+
+{id:"stoic",cat:"ARCHETYPES",n:"THE STOIC",ep:"You will never see them flinch. That is the whole problem.",
+es:"Emotion classified as data, not experience. Calm is not a state for them — it is an identity, maintained at a cost they have never calculated.",
+st:["Unshakeable in the crisis everyone else is crying through","Rational under fire; the rock in every storm","Says little and every word lands"],
+wk:["Partners feel alone standing next to them","Feelings leak sideways — as tension, silence, or the body keeping score","Asks for nothing until something structural fails"],
+lv:"Competence — theirs and yours",fr:"Falling apart in front of witnesses",ht:"Drama, by which they mean other people's feelings",
+sp:["Answers 'how do you feel' with what they think","Comforting presence, unreachable interior","The strongest person at every funeral"],
+rw:["Raise: name feelings early; give the weather a vocabulary","Love: don't force the door; sit beside it consistently","Work: the best operator you have; the worst debrief","Negotiate: they won't blink; bring data, not pressure"],
+bl:"Suppressed is not processed. The bill arrives later, with interest, addressed to the body.",
+or:"A house where crying changed nothing — or made it worse.",
+lk:["alexithymia","avoidant","strategist"],kw:["cold","unemotional","rock","calm","distant","strong silent"]},
+
+{id:"secure",cat:"ATTACHMENT STYLES",n:"SECURE — THE BASELINE",ep:"They can want you without needing you. It unnerves people.",
+es:"The rare climate nobody writes songs about: comfortable with closeness, comfortable with space, able to say the true thing and hear the true thing back.",
+st:["Direct communication; no riddles, no tests","Repairs after conflict instead of archiving it","Trusts without auditing; commits without merging"],
+wk:["Underestimates how much chaos other people carry","Can read intensity as instability and leave too early","Bored by drama that feels like love to the wounded"],
+lv:"Honesty, delivered plainly",fr:"Very little — and that is the tell",ht:"Games",
+sp:["Says no without a paragraph of justification","Apologizes without collapsing","Never once tests you"],
+rw:["Raise: you already did — someone showed up consistently","Love: bring your whole self; they can hold it","Work: give them the ambiguous project; they will stabilize it","Negotiate: just be fair; they will notice and match it"],
+bl:"They sometimes cannot read the weather in people who never had their climate.",
+or:"Someone showed up, consistently, when they were small. That is the entire recipe.",
+lk:["anxious","avoidant","disorganized"],kw:["stable","healthy","grounded","secure attachment"]},
+
+{id:"anxious",cat:"ATTACHMENT STYLES",n:"ANXIOUS — THE TIDE",ep:"They don't miss you. They monitor you.",
+es:"Love registered early as a signal that can drop without warning. Every silence is a cliff edge; every relationship is a radio station they keep fine-tuning, terrified of static.",
+st:["Devotion at full volume, indefinitely","Radar for shifts in tone that border on the psychic","Fights for the relationship — sometimes past its funeral"],
+wk:["Protest behavior: the tests, the double texts, the manufactured exits","Abandons themselves to avoid being abandoned","Reassurance has a half-life of about four hours"],
+lv:"Reassurance — explicit, repeated, preferably in writing",fr:"The fade: love quietly downgrading without an announcement",ht:"'I need space' — four words, one siren",
+sp:["Remembers exactly when you last said it","Reads typing dots like tea leaves","Apologizes before you knew anything happened"],
+rw:["Raise: be boringly predictable; routine is the medicine","Love: reassure before they ask — asking costs them dignity","Work: clear feedback, regularly; silence breeds screenplays","Negotiate: never use withdrawal as leverage; it detonates them"],
+bl:"The tests designed to prevent abandonment often perform it.",
+or:"Inconsistent care — love on a variable schedule — taught the nervous system to never clock out.",
+lk:["codependent","rsd","avoidant","limerence","bpd"],kw:["clingy","jealous","needy","double text","anxious attachment","left on read"]},
+
+{id:"avoidant",cat:"ATTACHMENT STYLES",n:"AVOIDANT — THE EXIT ARTIST",ep:"They leave before anyone can leave them. Then they call it independence.",
+es:"Closeness equals pressure. The nearer you get, the more the exits light up. They are not cold — they are a country with strict immigration policy and excellent emigration services.",
+st:["Self-reliance that survives shipwrecks","Cool in crisis; feelings never hijack the controls","Never clingy, never suffocating, never a burden"],
+wk:["Intimacy starves in their care; partners feel managed, not met","Deactivates: finds flaws in anyone who gets close","Misses people most when they are gone — the distance is the point"],
+lv:"Autonomy — the door they can open themselves",fr:"Engulfment: being swallowed by someone else's needs",ht:"'We need to talk'",
+sp:["Keeps it light at month three; vague about year two","Withdraws right after the best weekend","Their independence is mentioned more often than their feelings"],
+rw:["Raise: respect the no; connection forced is connection lost","Love: pursue gently and steadily; pressure is the eject button","Work: autonomy plus accountability; micromanagement is fatal","Negotiate: give them an exit and they may stay for the conversation"],
+bl:"They call the loneliness freedom because they chose the door themselves.",
+or:"A caregiver who couldn't be leaned on — needs met with irritation, so the needs were deleted.",
+lk:["stoic","anxious","strategist","neglect","alexithymia"],kw:["leave first","commitment issues","distant","runs away","emotionally unavailable","avoidant attachment"]},
+
+{id:"disorganized",cat:"ATTACHMENT STYLES",n:"DISORGANIZED — THE STORM",ep:"Come here. Go away. Both are true, at full volume, in the same breath.",
+es:"The source of comfort was also the source of fear, so love itself trips the alarm. They reach for people with one hand and check for weapons with the other.",
+st:["Depth — their intimacy, when it lands, is unforgettable","Radical honesty in flashes that cuts years of pretense","Passion that makes everyone else's look rehearsed"],
+wk:["Push-pull chaos; sabotages the thing it begs for","Tests partners with exams they never announced","Calm relationships feel wrong; peace reads as the quiet before it"],
+lv:"Intensity — it is the only proof that feels real",fr:"Closeness and distance, simultaneously, forever",ht:"Feeling predictable; being 'figured out'",
+sp:["The best first month of your life, then static","Affection that arrives in weather systems","You failed a test you never knew you sat"],
+rw:["Raise: safety plus structure, for years, without retaliation","Love: consistency is the only argument that has ever worked","Work: clear expectations; ambiguity becomes catastrophe","Negotiate: never corner them; offer the face-saving exit"],
+bl:"The chaos is not passion. It is a fire alarm wired to a doorbell.",
+or:"Frightening or frightened caregiving — love and danger arriving in the same arms.",
+lk:["bpd","anxious","avoidant","cptsd"],kw:["hot and cold","push pull","toxic","rollercoaster","fearful avoidant"]},
+
+{id:"father",cat:"WOUNDS",n:"THE FATHER WOUND",ep:"They stopped expecting to be chosen. Everything since has been an audition or a revenge.",
+es:"The first man set the exchange rate of their worth — absent, critical, or conditional — and every boss, lover and rival since has been asked to settle the account.",
+st:["Drive that outworks entire rooms","Self-sufficiency learned before it was safe","Gravitas; they command respect because they had to earn it wholesale"],
+wk:["Chases approval from authority figures who did not ask for the job","Dating becomes re-enactment or avoidance; rarely just dating","Cannot hear praise from the people it actually matters from"],
+lv:"Respect that is earned and witnessed",fr:"Being ordinary in his eyes — even now, even if he's gone",ht:"Needing anyone's blessing; needing it anyway",
+sp:["Over-explains achievements to unimpressed rooms","Either idolizes male authority or refuses it entirely","Every success story ends with a shrug that costs them"],
+rw:["Raise: show up, stay, say 'I see you' without a reason","Love: they will test whether you leave; the test is the relationship","Work: give credit in writing; they collect it like rations","Negotiate: respect their competence and the deal is half done"],
+bl:"The audition never ends because the judge left the building years ago. The performance continues anyway.",
+or:"A father who was a critic, a ghost, or a competitor — and a child who kept score.",
+lk:["perfectionist","narcissist","rsd","conditional"],kw:["daddy issues","absent father","dad","approval","never good enough for dad"]},
+
+{id:"mother",cat:"WOUNDS",n:"THE MOTHER WOUND",ep:"The first mirror was cracked. They have been checking their reflection ever since.",
+es:"The first relationship taught them that love has weather. Whether she was enmeshed, critical, fragile or role-reversed, her moods became their climate — and the climate moved in permanently.",
+st:["Attunement to moods that borders on weather forecasting","Emotional literacy; they can name what others only feel","Endurance of the quietly heroic kind"],
+wk:["Guilt is the default setting; boundaries feel like betrayal","Her disappointment still moderates their inner parliament, at any age","Cannot criticize her without defending her in the same breath"],
+lv:"Peace — the house calm, the phone silent",fr:"Her sigh. At forty. From another city.",ht:"Calls that end with 'fine' in a tone that isn't",
+sp:["Apologizes to furniture","Manages everyone's feelings before their own","Says 'she did her best' with a face that knows better"],
+rw:["Raise: let the child be the child; carry your own weather","Love: they will mother you; redirect it gently or disappear","Work: they over-function; assign boundaries like tasks","Negotiate: guilt works on them, which is exactly why you shouldn't"],
+bl:"Leaving the role feels like leaving her — loyalty to the wound masquerading as love.",
+or:"A mother who loved through control, fragility, or need — and a child who became the regulator.",
+lk:["codependent","parentified","anxious","golden"],kw:["mommy issues","enmeshed","controlling mother","guilt","mama's boy"]},
+
+{id:"parentified",cat:"WOUNDS",n:"THE PARENTIFIED CHILD",ep:"They raised their parents. Nobody raised them.",
+es:"The kid who became the adult — therapist, mediator, translator, third parent — before they had the tools, the vocabulary, or a choice in the matter.",
+st:["Competence that frightens people twice their age","Crisis-proof; they have been managing emergencies since childhood","Reads rooms instantly, because rooms used to be dangerous"],
+wk:["Does not know what they want; wanting was never the job","Play feels foreign; rest feels like neglect","Gives world-class advice and takes none of it"],
+lv:"Being capable — it is the only identity that ever fit",fr:"Being a burden; needing anything audibly",ht:"'What do you need?' — a question with no script",
+sp:["The reliable one in every group, every family, every crisis","Childhood stories where adults call them 'so mature'","Exhausted in a way sleep doesn't touch"],
+rw:["Raise: they raised themselves; witness it without worshipping it","Love: take care of them without asking permission; they will never grant it","Work: delegate to them, then check if they've eaten","Negotiate: they undervalue themselves; pay fairly and watch them be confused"],
+bl:"Maturity was the costume. The child is still waiting backstage for a childhood that isn't coming.",
+or:"Adult problems handed to small hands — addiction, illness, divorce, poverty, or a parent who simply refused the job.",
+lk:["caregiver","codependent","stoic","mother"],kw:["eldest daughter","grew up fast","mature for their age","little adult","parentified"]},
+
+{id:"golden",cat:"WOUNDS",n:"GOLDEN CHILD / SCAPEGOAT",ep:"One can do no wrong. One can do no right. Same house, same parents.",
+es:"Families assign roles. The golden child is loved as a trophy — for the shine, not the self. The scapegoat is blamed as a pressure valve — for the truth, not the crime. Both are cages; only the lighting differs.",
+st:["Golden: polish, achievement, an instinct for what impresses","Scapegoat: truth-telling, resilience, an exit already built","Both: a forensic understanding of favoritism"],
+wk:["Golden: collapses when the applause stops; the self was never assembled","Scapegoat: internalized blame; expects the accusation before the hello","Both: siblings they grieve and cannot reach"],
+lv:"Golden: winning. Scapegoat: being believed.",fr:"Golden: ordinariness. Scapegoat: that it's true.",ht:"Family dinners",
+sp:["Golden: a resume where the personality should be","Scapegoat: flinches at praise, over-explains innocence","Both: the family story doesn't match their memory of it"],
+rw:["Raise: love the child, not the reflection; blame actions, not identity","Love: golden needs unconditional boring love; scapegoat needs to be believed","Work: golden over-delivers for approval; scapegoat needs explicit credit","Negotiate: golden folds if approval is threatened; scapegoat if fairness is"],
+bl:"The roles were never about either of them. They were cast in someone else's play.",
+or:"A parent who needed a hero and a culprit more than they needed children.",
+lk:["narcissist","perfectionist","conditional","father"],kw:["golden child","scapegoat","favorite","black sheep","family roles"]},
+
+{id:"neglect",cat:"WOUNDS",n:"EMOTIONAL NEGLECT",ep:"Nothing bad happened. That is the wound.",
+es:"No trauma to point at, no story to tell — just an absence. Feelings were ignored so thoroughly that they learned to ignore them too. The house was fine. Nobody lived in it emotionally.",
+st:["Low-maintenance to a fault; needs nothing, asks less","Independent; self-soothing since toddlerhood","Undramatic — a calm port in any storm"],
+wk:["Cannot name needs they were never taught to have","Feels invisible in crowds of people who like them","Numb where others are warm; lonely without a reason they can cite"],
+lv:"Quiet — undemanding, uneventful quiet",fr:"Being too much; the house taught them they already were",ht:"'Tell me about your childhood' — there's nothing to tell. That's the point.",
+sp:["Describes the childhood as 'fine, normal' and changes the subject","Apologizes for taking up space, time, oxygen","Deeply lonely and genuinely cannot say why"],
+rw:["Raise: ask how it feels in there, then survive the answer","Love: they will never ask — offer, gently, repeatedly","Work: they underreport everything; check in on schedule, not vibe","Negotiate: they accept the first offer; be decent"],
+bl:"The absence shaped them as surely as any presence shapes anyone. They just can't point at it.",
+or:"Parents who fed, clothed, and never once asked how it felt in there.",
+lk:["alexithymia","avoidant","stoic"],kw:["neglect","lonely","invisible","numb","fine childhood","empty"]},
+
+{id:"conditional",cat:"WOUNDS",n:"CONDITIONAL LOVE",ep:"Affection had terms and conditions. They still read every room for the fine print.",
+es:"Love arrived with achievement and left with failure. Worth became a quarterly report, and they have been reporting ever since — to bosses, partners, mirrors.",
+st:["An achievement engine that rarely stalls","Discipline; they do the work when nobody claps","Polish — every output inspected before release"],
+wk:["Cannot rest; rest reads as fraud","Love feels transactional; kindness must be invoiced and repaid","Vulnerability feels like a contract risk"],
+lv:"Scoreboard wins — unarguable, dated, documented",fr:"Being loved 'for nothing' — they would not believe it or trust it",ht:"Unconditional people; suspicious characters",
+sp:["Reports accomplishments when you ask how they are","Cannot accept a gift without reciprocating by Friday","Fishes with results, never with feelings"],
+rw:["Raise: hug them on the day they fail, specifically","Love: love them badly, boringly, without cause — it rewires everything","Work: they need metrics and will over-serve them","Negotiate: their worth is on the table; don't put it there"],
+bl:"They are still performing for a verdict that was never about the performance.",
+or:"Praise for grades, silence for feelings. A hug with a rubric.",
+lk:["perfectionist","golden","father"],kw:["tiger parent","grades","trophy","approval","never enough","conditional"]},
+
+{id:"narcissist",cat:"CLINICAL PATTERNS",clin:1,n:"THE NARCISSISTIC PATTERN",ep:"The mirror has to be fed.",
+es:"Beneath the shine is a self that never got securely built. Admiration is load-bearing; criticism registers as structural damage. A pattern of tendencies — grandiosity, hunger for supply, empathy that dims under threat — not a verdict.",
+st:["Charisma that reorganizes rooms","Vision and the nerve to chase it","Composure where others panic"],
+wk:["Criticism reads as attack; feedback becomes warfare","Empathy is situational — full for the useful, dim for the rest","Relationships quietly become supply chains"],
+lv:"Being exceptional, witnessed",fr:"Ordinariness; being truly seen",ht:"Indifference — an insult is preferable",
+sp:["Every conversation orbits back to them","Rages at slights nobody else registered","Charm with a timer on it"],
+rw:["Raise: value the child, not the shine; criticize the act, never the being","Love: you will be an audience; decide if that's a life","Work: give them the stage and guard the team","Negotiate: frame your win as their glory"],
+bl:"The grandiosity is the bandage, not the wound — and the wound is ordinary, aching shame.",
+or:"Often conditional love plus golden-child inflation: valued for the shine, never for the self.",
+lk:["golden","manipulator","rsd","father"],kw:["narcissist","npd","ego","vain","self obsessed","main character"]},
+
+{id:"bpd",cat:"CLINICAL PATTERNS",clin:1,n:"THE BORDERLINE PATTERN",ep:"I hate you. Don't leave me. Both at full volume.",
+es:"Emotions without a dimmer switch, and attachment wired to a fire alarm. The pattern: intensity, terror of abandonment, and a self-image that shifts with the last person who reflected it. Tendencies on a spectrum — not a verdict.",
+st:["Empathy at high fidelity; they feel your feelings before you do","Passion and loyalty of the total kind","Aliveness that ordinary life rarely offers"],
+wk:["Splitting — hero to villain in an hour, and back by morning","Abandonment feared so hard it gets performed","The storm feels caused by whoever is standing nearest"],
+lv:"Total closeness; all of you, all the time",fr:"The moment you leave — rehearsed daily, for years",ht:"Neutrality; lukewarm anything",
+sp:["Relationships begin at movie speed","A delayed reply is processed as a verdict","Apologizes like it's the last conversation you will ever have"],
+rw:["Raise: validate the feeling, hold the boundary, both always","Love: boring consistency; it is the only known antidote","Work: clear expectations and zero ambiguity in tone","Negotiate: never during the storm; schedule the talk for the calm"],
+bl:"The storm feels caused by others. It starts earlier and deeper — the others are just weather.",
+or:"Invalidation plus chaos: feelings punished or mocked, then wondered at when they grew teeth.",
+lk:["disorganized","rsd","cptsd","anxious"],kw:["bpd","borderline","splitting","intense","abandonment","favorite person"]},
+
+{id:"adhd",cat:"CLINICAL PATTERNS",clin:1,n:"THE ADHD PATTERN",ep:"Behind schedule in a race nobody else is running.",
+es:"An interest-driven nervous system. Attention is not absent — it is on a different payroll, and it only works for novelty, urgency, passion or panic. Not laziness. Not a character flaw. Wiring.",
+st:["Hyperfocus that moves actual mountains","Creativity under deadline fire","Notices the connection everyone else missed — while missing the meeting"],
+wk:["Time blindness; the hour is a rumor","The laundry chair, the 47 tabs, the unopened mail","Shame from a thousand small failures that were never about effort"],
+lv:"Novelty and urgency — the only two fuels on the pump",fr:"Boredom the way other people fear pain",ht:"'Just focus' — two words that solve nothing, forever",
+sp:["Brilliant, elaborate excuses that are somehow all true","Late despite leaving early","Their desk is an archaeology of abandoned hobbies"],
+rw:["Raise: structure the environment, not the child; interest is the ignition","Love: body-double their boring tasks; never mother their calendar","Work: novelty, urgency, and forgiveness in writing","Negotiate: short meetings. Shorter. There it is."],
+bl:"The deficit was never effort. The shame about it has done more damage than the trait ever will.",
+or:"Wiring, not raising — though years of 'lazy' and 'potential' become a second wound on top of the first.",
+lk:["rsd","perfectionist","nihilist"],kw:["adhd","can't sit still","focus","late","procrastinate","distracted","hyperfocus"]},
+
+{id:"autism",cat:"CLINICAL PATTERNS",clin:1,n:"MASKED AUTISM",ep:"They perform normal so well that the standing ovation exhausts them.",
+es:"Social rules learned as a second language — fluency achieved at cost. The mask is craftsmanship: studied expressions, rehearsed scripts, calibrated eye contact. The audience sees ease. The performer pays the invoice at midnight.",
+st:["Pattern-sense that reads systems others only inhabit","Loyalty and honesty others cannot afford","Depth in chosen interests that borders on mastery"],
+wk:["The crash after performing; evenings spent recovering from lunch","Sensory overwhelm disguised as rudeness or flakiness","Burnout cycles the calendar never sees coming"],
+lv:"The special interest — and people who don't require the mask",fr:"Being 'too much' and 'not enough' in the same interaction",ht:"Unwritten rules everyone pretends are natural",
+sp:["Rehearses phone calls; avoids the unscripted ones","Eye contact that looks measured, because it is","The laugh arrives a beat late and exactly right"],
+rw:["Raise: unmask at home; home is where the stim is safe","Love: directness is kindness; hints are cruelty","Work: written instructions and warning before surprises","Negotiate: say exactly what you mean; they will, too"],
+bl:"They think everyone is performing this hard. Most people are not.",
+or:"Wiring meeting a world that grades on a neurotypical curve; the mask built in childhood, brick by careful brick.",
+lk:["alexithymia","stoic","rsd","avoidant"],kw:["autism","masking","asperger","sensory","stimming","perform normal","scripted"]},
+
+{id:"ocd",cat:"CLINICAL PATTERNS",clin:1,n:"THE OCD PATTERN",ep:"The alarm is false. The fear is not.",
+es:"Intrusive thoughts met with rituals; certainty chased and never caught. Not tidiness — terror with a checklist. The thoughts feel like confessions; the rituals feel like bail. Both are symptoms.",
+st:["Conscientiousness that catches what everyone else ships","Reliability; if they said it, it happened","Attention to true detail under pressure"],
+wk:["Rituals eat hours and feed nothing","Reassurance never holds; the doubt regenerates","Responsibility inflated to cosmic scale: if I can prevent it, I must"],
+lv:"Certainty — the one product never in stock",fr:"Their own mind at 3 AM",ht:"'I'm so OCD,' said by tidy people",
+sp:["Checks what is already checked, then doubts the checking","Confesses thoughts to defuse them; relief lasts minutes","Arranges, counts, or replays — privately, ashamedly"],
+rw:["Raise: never use their rituals against them; accommodate less, support more","Love: the thoughts are symptoms, not secrets; hear them without flinching","Work: precision roles, hard deadlines, zero ambiguity about done","Negotiate: written terms calm them; verbal drift costs them sleep"],
+bl:"The ritual is the problem wearing the costume of the solution.",
+or:"Wiring plus an inflated sense of responsibility — often a child who believed their thoughts could cause the world.",
+lk:["perfectionist","cptsd","traditionalist"],kw:["ocd","intrusive thoughts","checking","rituals","contamination","certainty"]},
+
+{id:"cptsd",cat:"CLINICAL PATTERNS",clin:1,n:"HYPERVIGILANCE — THE C-PTSD PATTERN",ep:"They read the room before they enter it. They never fully enter it.",
+es:"A threat-detection system trained young and never decommissioned. The body is calm; the mind is sweeping. It is not anxiety about the future — it is memory, running as background process, forever.",
+st:["Nothing gets past them; micro-shifts in tone register instantly","Crisis-tested; when it actually happens, they are already done","Loyalty to the safe few that outlasts everything"],
+wk:["Exhaustion — the system runs at night, too","Startles at tone shifts, footsteps, keys in doors","Safety never fully registers; the all-clear never arrives"],
+lv:"Predictability, and a seat facing the door",fr:"Being trapped; being surprised",ht:"'Just relax,' offered as advice",
+sp:["Sits facing the exit; catalogs the room without appearing to","Tracks footsteps and knows the household by its sounds","The smile stays while the eyes sweep"],
+rw:["Raise: predictable everything — moods, meals, consequences","Love: announce yourself; never grab from behind; keep every small promise","Work: clear authority, no surprise reviews, honest timelines","Negotiate: no pressure tactics; pressure reads as threat and the deal is dead"],
+bl:"The danger retired years ago. The soldier didn't.",
+or:"An environment where reading the weather fast was survival — violence, volatility, addiction, or all three.",
+lk:["disorganized","codependent","avoidant","bpd"],kw:["ptsd","cptsd","trauma","hypervigilant","startle","on edge","flashback"]},
+
+{id:"codependent",cat:"CLINICAL PATTERNS",clin:1,n:"CODEPENDENCY — THE FAWN RESPONSE",ep:"Their personality is a peace treaty.",
+es:"Safety through merger: your moods are my weather, your comfort is my job description. Fight, flight, freeze — and fawn, the fourth response, the one that smiles while it disappears.",
+st:["Harmony-craft; they defuse rooms professionally","Generosity with no visible bottom","Radar for distress that picks up signals across zip codes"],
+wk:["No self outside the relationship; the opinions are borrowed","Resentment saved like stamps, never mailed","'Yes' as a reflex with a body count"],
+lv:"Being good — it is the only strategy that ever worked",fr:"Anger — anyone's, especially their own",ht:"Conflict; they will agree to almost anything to end it",
+sp:["Mirrors your opinions back before forming one","Over-explains a simple no into a legal brief","Exhausted by being wonderful"],
+rw:["Raise: let their no stand; it is the first real sentence they own","Love: ask what they want and wait out the 'whatever you want'","Work: they absorb the team's emotions; shield them or lose them","Negotiate: they fold instantly; the ethical move is to not let them"],
+bl:"The kindness is strategy. Fawning is fighting — sideways, smiling, and terrified.",
+or:"A home where a child's 'no' was dangerous, punished, or simply pointless.",
+lk:["caregiver","anxious","mother","cptsd"],kw:["codependent","fawn","people pleaser","can't say no","doormat","peacekeeper"]},
+
+{id:"rsd",cat:"CLINICAL PATTERNS",clin:1,n:"REJECTION SENSITIVE DYSPHORIA",ep:"A short reply. A paused conversation. A whole funeral, held in seconds.",
+es:"Rejection perceived as physical pain — instant, total, and completely outrunning the evidence. The wound is real whether or not the rejection is. It usually isn't.",
+st:["Empathy sharpened by vigilance","Attentiveness to everyone's comfort, constantly","Effort — enormous, perpetual, aimed at staying wanted"],
+wk:["Reads slights in static; neutrality registers as cooling","Rage or collapse at small disapproval, then shame about the reaction","Avoids trying, because failing feels like dying"],
+lv:"Unambiguous welcome — explicit, warm, preferably repeated",fr:"Being tolerated rather than wanted",ht:"'You're overthinking it.' They know. It does not help.",
+sp:["Spirals after neutral feedback; the spiral has a script","Triple-checks the tone of 'ok'","Pre-rejects themselves to save everyone time"],
+rw:["Raise: criticize the work, never the child; warmth before feedback, always","Love: over-communicate affection; their math assumes the worst","Work: feedback in person with context; written bluntness detonates","Negotiate: no ultimatums; they will accept bad terms to avoid the no"],
+bl:"The rejection is usually imagined. The pain never is — and the pain is the part they trust.",
+or:"Often rides alongside ADHD wiring plus a childhood of criticism — the two compound like interest.",
+lk:["adhd","anxious","bpd","perfectionist","narcissist"],kw:["rsd","rejection","sensitive","criticism","overthinking","ghosted"]},
+
+{id:"alexithymia",cat:"CLINICAL PATTERNS",clin:1,n:"ALEXITHYMIA",ep:"The feelings are in there. The words never got installed.",
+es:"Emotion without vocabulary: felt in the body, unreadable to the mind. Not coldness — a missing language. They are not empty; they are untranslated.",
+st:["Steadiness that others borrow in a crisis","Pragmatism; no weather gets between them and the task","Calm that is genuine, not performed"],
+wk:["'I don't know' to every 'how do you feel' — honestly, they don't","Partners become translators, then exhausted translators","Stress arrives as back pain, insomnia, ulcers — never as insight"],
+lv:"The concrete: tasks, facts, things you can hold",fr:"Feelings-conversations — exams in a language they don't speak",ht:"'Just open up,' as if there were a door",
+sp:["Answers emotion questions with events","Describes the week, never the weather inside","Loves through acts — fixed things, full fridges — never words"],
+rw:["Raise: name feelings out loud, theirs and yours, like colors","Love: learn their actual language; the fixed sink is a love letter","Work: roles with clear outputs; feelings-meetings are their tax audit","Negotiate: they mean exactly what they said; there is no subtext to find"],
+bl:"The body keeps a score they cannot read — and it is keeping it anyway.",
+or:"Often a neglect household where feelings were never named; sometimes simply wiring.",
+lk:["stoic","neglect","autism","avoidant"],kw:["alexithymia","can't express feelings","numb","robot","no emotions","unreadable"]},
+
+{id:"limerence",cat:"CLINICAL PATTERNS",clin:1,n:"LIMERENCE",ep:"It is not love. It is an obsession wearing love's clothes.",
+es:"Involuntary infatuation that feeds on uncertainty. The maybe is the drug; the person is the excuse. Reciprocated fully, it starves. Denied fully, it grieves. Uncertain, it burns for years.",
+st:["Capacity for devotion most people never approach","Romantic imagination of cinematic scale","Focus — when the target is a person, nothing else exists"],
+wk:["Lives for signals; productivity hostage to one person's attention","Mistakes anxiety for destiny — the chest-tightening must mean something","Neglects the actual, available people for the almost"],
+lv:"Almost. The almost is everything.",fr:"Certainty either way: yes ends the tension, no ends the world",ht:"'Just move on' — if it were just anything, they would have",
+sp:["Knows their schedule, their playlist, their typing patterns","One text sustains a week; one glance a month","'We have a connection,' said of someone they barely know"],
+rw:["Raise: teach that calm love is not boring love","Love: certainty starves it — be fully, boringly available","Work: the obsession will eat their output; deadlines from outside help","Negotiate: not applicable; they are not in the room, they are in their head"],
+bl:"It is not about them. It is about the slot they fill — and the slot was carved long before they arrived.",
+or:"Inconsistent early attachment: longing learned to feel like love before love had a chance to introduce itself.",
+lk:["anxious","idealist","rsd","artist"],kw:["limerence","crush","obsessed","situationship","can't stop thinking","oneitis"]},
+
+{id:"manipulator",cat:"CLINICAL PATTERNS",clin:1,n:"THE MANIPULATOR — DARK TRIAD",ep:"Charm is just control with good lighting.",
+es:"People as instruments: narcissism's hunger, Machiavellian patience, and the missing brakes. Not a diagnosis — an educational sketch of a pattern you will meet, so that meeting it costs you less.",
+st:["Composure — they read pressure like weather","Persuasion that feels like your own idea","Fearlessness in negotiation; they can lose you, and it shows"],
+wk:["Nobody stays once the pattern resolves","The wins get lonelier; the circle gets smaller and more transactional","They must keep moving — a reputation has a blast radius"],
+lv:"Leverage — the only asset that never depreciates for them",fr:"Being seen clearly by someone unafraid",ht:"People who can't be played; they read as insults",
+sp:["Love-bombing openers; intensity as a down payment","Stories in which everyone else was crazy","Apologies that invoice you later"],
+rw:["Raise: empathy taught as skill, enforced as rule, modeled at home","Love: you will not fix this; leave the renovation to professionals","Work: audit trails and written terms; charm hates paperwork","Negotiate: never need the deal; need is the door they walk through"],
+bl:"They think everyone plays. Trust reads as naivety to them — the loneliest belief a person can hold.",
+or:"Sometimes wiring; often a childhood where love was leverage — they learned the game by losing it first.",
+lk:["opportunist","narcissist","strategist"],kw:["gaslighting","manipulator","dark triad","psychopath","love bombing","toxic","user"]}
+];
+
+/* ---------- THE QUESTIONNAIRE ----------
+   32 scenarios. Options score hidden axes:
+   a: archetypes   t: attachment   w: wounds
+   c: clinical patterns          x: radar (O C E A N G) */
+const QUESTIONS=[
+{q:"It's 11:40 PM. They texted \u201cwe need to talk tomorrow.\u201d The phone is now face down. What actually happens in you?",o:[
+["I draft the whole conversation twice, then sleep fine.",{a:{strategist:2},t:{sec:1},x:{C:1}}],
+["I re-read the last ten messages for evidence. Sleep is cancelled.",{t:{anx:2},c:{rsd:2},x:{N:2}}],
+["Tomorrow is tomorrow. I sleep.",{a:{stoic:1},t:{sec:1},x:{N:-1}}],
+["I already know what I did wrong. I have known for years.",{w:{neglect:1,conditional:1},x:{N:1}}]]},
+
+{q:"You walk into a party where you know exactly one person. First move?",o:[
+["Find the most useful person in the room and open.",{a:{opportunist:2},c:{narcissist:1},x:{E:2}}],
+["Find the dog. The dog and I have plans.",{t:{avo:1},c:{autism:1},x:{E:-2,A:1}}],
+["Work the edges — observe first, engage once the room is mapped.",{a:{strategist:2},x:{O:1,G:1}}],
+["Become whoever this room needs me to be.",{c:{codependent:2,autism:1},x:{G:1}}]]},
+
+{q:"Your work gets praised publicly. Inside:",o:[
+["I inventory the flaws they missed.",{a:{perfectionist:2},c:{rsd:1},x:{N:1,C:1}}],
+["Correct. More of this.",{c:{narcissist:2},a:{opportunist:1},x:{G:1}}],
+["Warm, brief — then suspicious. What do they want?",{c:{cptsd:2},a:{strategist:1},x:{G:1}}],
+["I deflect to the team before it can land.",{a:{caregiver:1},c:{codependent:1},x:{A:1}}]]},
+
+{q:"A free Sunday. Zero obligations. By 6 PM you have:",o:[
+["Finished three projects started this morning. And started five more.",{c:{adhd:2},a:{artist:1},x:{O:2,C:-1}}],
+["Reorganized something. Rest is earned, not had.",{a:{perfectionist:1,traditionalist:1},x:{C:2}}],
+["Done nothing — and the nothing felt loud.",{a:{nihilist:2},w:{neglect:1},x:{N:1}}],
+["Helped someone with their thing. Mine can wait. It always waits.",{a:{caregiver:2},c:{codependent:1},x:{A:1}}]]},
+
+{q:"A relationship gets serious. Month three. You:",o:[
+["Start finding reasons it won't work. Specific ones.",{t:{avo:3},x:{G:2}}],
+["Merge. Their friends, their shows, their morning routine.",{t:{anx:2},c:{codependent:2},x:{A:1}}],
+["Say what I want, check what they want. Boring. Works.",{t:{sec:2},x:{C:1}}],
+["Test them once, quietly, without announcing the exam.",{t:{dis:2},c:{cptsd:1},x:{G:2}}]]},
+
+{q:"Small talk with a coworker by the coffee machine. Internally:",o:[
+["Running the script. Weather. Weekend. Exit line.",{c:{autism:2},x:{E:-1,G:1}}],
+["Fine. People are fine.",{t:{sec:1},x:{E:1}}],
+["Auditioning for the exit since word one.",{t:{avo:2},x:{E:-1}}],
+["Genuine curiosity — everyone has one strange fact.",{a:{artist:1,optimist:1},x:{O:2,E:1}}]]},
+
+{q:"Your father calls. The screen shows his name. First feeling:",o:[
+["Inventory: what does he need, what will this cost.",{w:{father:2},a:{caregiver:1}}],
+["Nothing. The call and I are both fine with that.",{w:{father:1,neglect:1},c:{alexithymia:1},x:{N:1}}],
+["A small, ancient flinch. Then I answer cheerful.",{w:{father:2,conditional:1},x:{G:1,N:1}}],
+["Warmth, mostly. Luck of the draw.",{t:{sec:2}}]]},
+
+{q:"A friend is crying about a problem with an obvious fix. You:",o:[
+["Hold the space. The fix can wait.",{a:{caregiver:2},x:{A:2}}],
+["Deliver the fix. Crying is inefficient.",{a:{strategist:1,stoic:1},c:{alexithymia:1},x:{A:-1}}],
+["Cry a little too. Feelings are contagious here.",{a:{artist:2},t:{anx:1},x:{N:1}}],
+["Manage my face so it shows the right thing.",{c:{autism:1,codependent:1},x:{G:1}}]]},
+
+{q:"You catch someone unimpressed by you — a bored look during your story. You:",o:[
+["Note it. Adjust the story. Win them back.",{c:{narcissist:2},a:{opportunist:1},x:{G:1}}],
+["Shrink. Replay it tonight at 3 AM.",{c:{rsd:2},t:{anx:1},x:{N:2}}],
+["Shrug. Not everyone is my audience.",{t:{sec:1},a:{stoic:1},x:{N:-1}}],
+["File them as irrelevant. Permanently.",{a:{nihilist:1},t:{avo:1},x:{G:1}}]]},
+
+{q:"Someone says \u201ceverything happens for a reason.\u201d You:",o:[
+["Say nothing. Internally: the void sends its regards.",{a:{nihilist:2},x:{O:1}}],
+["Agree warmly. It usually does, sort of.",{a:{optimist:2,traditionalist:1},x:{A:1}}],
+["Ask what reason, specifically. Watch them blink.",{a:{strategist:1,stoic:1},x:{O:1}}],
+["Depends who's saying it and what they're selling.",{a:{opportunist:1},c:{cptsd:1},x:{G:1}}]]},
+
+{q:"They haven't replied in three hours. You saw them online. You:",o:[
+["Draft and delete. Draft and delete. Send something casual.",{t:{anx:3},c:{rsd:1},x:{N:2}}],
+["Match the energy. Three hours becomes three days.",{t:{avo:2,dis:1},x:{G:1}}],
+["They're busy. So am I.",{t:{sec:2},x:{E:1}}],
+["Screenshot to a friend: \u201cwhat does this MEAN.\u201d",{t:{anx:2},c:{codependent:1,limerence:1}}]]},
+
+{q:"Deadlines. Your honest relationship with them:",o:[
+["The work exists only in the final 10% of the time. It's my process. It ruins me.",{c:{adhd:3},x:{C:-2}}],
+["Done early, checked twice, buffer built in.",{a:{perfectionist:1,traditionalist:1},c:{ocd:1},x:{C:2}}],
+["Deadlines are a framework, not a law.",{a:{opportunist:1,nihilist:1},x:{C:-1}}],
+["I hit mine and quietly rescue other people's.",{a:{caregiver:1},w:{parentified:1},x:{C:1,A:1}}]]},
+
+{q:"You finish something big. It lands. Everyone claps. Twenty minutes later:",o:[
+["The next thing. Joy has a short half-life.",{a:{perfectionist:2},w:{conditional:1},x:{N:1}}],
+["Suspicion. When does the bill arrive?",{c:{cptsd:2,rsd:1},x:{G:1,N:1}}],
+["I let myself have it. Rare, but yes.",{t:{sec:2}}],
+["I text the person whose opinion actually counts.",{w:{father:2},t:{anx:1}}]]},
+
+{q:"Someone you love wants more of you — more time, more talk, more access. You feel:",o:[
+["The exits light up. I like them. I like them over there.",{t:{avo:3},x:{G:2}}],
+["Finally.",{t:{anx:2},c:{limerence:2},x:{N:1}}],
+["We negotiate the shape of it together.",{t:{sec:1},a:{strategist:1},x:{C:1}}],
+["Guilt, because my first instinct was flight.",{t:{dis:2},c:{codependent:1},x:{N:1}}]]},
+
+{q:"A conflict brews in the group chat. Your role, historically:",o:[
+["The diplomat. Everyone vents to me; I carry both sides.",{w:{parentified:2,mother:1},a:{caregiver:1},x:{A:1}}],
+["I say the thing. Someone has to.",{a:{strategist:1,traditionalist:1},x:{A:-1}}],
+["I mute it. Peace is someone else's job.",{t:{avo:1},a:{nihilist:1}}],
+["I agree with whoever is angriest until it passes.",{c:{codependent:3},x:{G:1}}]]},
+
+{q:"After three hours of being \u201con\u201d with people, you:",o:[
+["Need total silence like oxygen. Nobody warns you what it costs.",{c:{autism:2},x:{E:-2}}],
+["Could go three more. People are fuel.",{a:{optimist:1},x:{E:2}}],
+["Feel fine, slightly hollow, can't say why.",{c:{alexithymia:2},w:{neglect:1}}],
+["Review everything I said. All of it. With commentary.",{c:{rsd:2},t:{anx:1},x:{N:2}}]]},
+
+{q:"Feedback lands: \u201cgood, but here's what's wrong.\u201d You hear:",o:[
+["Only the wrong part. On loop.",{c:{rsd:2},a:{perfectionist:1},x:{N:2}}],
+["Data. Apply, discard, move.",{a:{strategist:1,stoic:1},x:{C:1}}],
+["Attack, briefly. Then I manage the reaction.",{c:{bpd:2},x:{N:2}}],
+["Nothing. Praise and blame bounce off the same wall.",{a:{nihilist:1},c:{alexithymia:1}}]]},
+
+{q:"As a kid, when you accomplished something, the house responded with:",o:[
+["\u201cGood. Next.\u201d",{w:{conditional:2,father:1}}],
+["A celebration that was somehow about them.",{w:{golden:2},c:{narcissist:1}}],
+["Nothing notable. Expected, or unnoticed.",{w:{neglect:2}}],
+["Warmth I can still feel.",{t:{sec:2}}]]},
+
+{q:"Your idea of a perfect evening:",o:[
+["One person, real conversation, nowhere to be.",{a:{artist:1,idealist:1},x:{O:2}}],
+["A project that swallows the clock whole.",{c:{adhd:1},a:{artist:1,perfectionist:1},x:{C:1,O:1}}],
+["People, noise, the hum of a room going well.",{a:{optimist:2},x:{E:2}}],
+["Alone, unbothered, phone on silent. The luxury.",{t:{avo:2},a:{stoic:1},x:{E:-2}}]]},
+
+{q:"A friend achieves the thing you wanted. Honestly:",o:[
+["Happy for them. The envy arrives later, privately, at night.",{a:{perfectionist:1},x:{N:1,G:1}}],
+["Happy, full stop. Their win isn't my loss.",{t:{sec:1},a:{optimist:1},x:{A:1}}],
+["I study what they did. Then I do it better.",{a:{strategist:1,opportunist:2}}],
+["I go quiet for a day and hate myself for it.",{c:{rsd:2},a:{perfectionist:1},x:{N:2}}]]},
+
+{q:"Rules you didn't make. Your default:",o:[
+["Follow. Most exist because someone bled.",{a:{traditionalist:2},c:{ocd:1},x:{C:1}}],
+["Follow the good ones. Auditing is automatic.",{a:{strategist:2},x:{O:1}}],
+["They apply to other people, mostly.",{a:{opportunist:2},c:{narcissist:1}}],
+["I comply outwardly. Inside, a quiet court is in session.",{t:{dis:1},c:{codependent:1},x:{G:1}}]]},
+
+{q:"A compliment that actually matters lands. Your face:",o:[
+["Accepts it. Inside, the audit begins immediately.",{c:{rsd:1},a:{perfectionist:1},x:{N:1,G:1}}],
+["Glows. I'll be honest — I needed that.",{t:{anx:1},a:{optimist:1}}],
+["Thanks them and means it.",{t:{sec:2}}],
+["Deflects with a joke. Always the joke.",{t:{avo:1},c:{alexithymia:1}}]]},
+
+{q:"When you were a kid and things went wrong at home, you:",o:[
+["Became useful. Useful children are kept.",{w:{parentified:2},a:{caregiver:1}}],
+["Became invisible.",{w:{neglect:2},t:{avo:1}}],
+["Became good. Grades, manners, shine.",{w:{golden:2,conditional:1},a:{perfectionist:1}}],
+["Became the problem. At least it was a role.",{w:{golden:2},t:{dis:1},x:{N:1}}]]},
+
+{q:"How do you end things — jobs, relationships, friendships?",o:[
+["Cleanly, with words, like an adult. Allegedly.",{t:{sec:1},a:{strategist:1},x:{C:1}}],
+["Slowly fade until the other person does it for me.",{t:{avo:2},c:{codependent:1},x:{G:1}}],
+["Burn it. Then grieve the ashes for years.",{c:{bpd:2},t:{dis:2},x:{N:2}}],
+["I don't, really. Things end around me.",{a:{nihilist:1},w:{neglect:1}}]]},
+
+{q:"Your inner monologue, most days, sounds like:",o:[
+["A coach. Tough love, clipboards.",{a:{perfectionist:1},w:{conditional:1},x:{C:1}}],
+["A commentator. Detached, slightly amused.",{a:{stoic:1,strategist:1},x:{N:-1}}],
+["A critic with insider access.",{c:{rsd:2},x:{N:2}}],
+["Static. Songs. Seventeen open threads.",{c:{adhd:2},a:{artist:1},x:{O:1}}]]},
+
+{q:"Trust, as a policy:",o:[
+["Earned in installments, revocable instantly.",{c:{cptsd:2},x:{G:2}}],
+["Given freely, withdrawn on evidence.",{t:{sec:2},x:{A:1}}],
+["A currency. Spend it where it pays.",{a:{opportunist:1,strategist:1},x:{A:-1}}],
+["I trust people completely. It's easier than disappointing them.",{c:{codependent:2},t:{anx:1}}]]},
+
+{q:"The thing people most often get wrong about you:",o:[
+["That I'm cold. I'm not. I'm full and silent.",{c:{alexithymia:2},a:{stoic:1}}],
+["That I'm confident. I'm rehearsed.",{a:{perfectionist:1},c:{autism:1},x:{G:1}}],
+["That I'm fine. I said it first, so they believed it.",{a:{caregiver:1},c:{codependent:1},w:{mother:1}}],
+["That I don't care. I care at a ruinous volume.",{a:{nihilist:1,artist:1},x:{N:1}}]]},
+
+{q:"A door closes — a rejection, an ending, a no. Two weeks later:",o:[
+["Extracted the lesson, built a new door.",{a:{strategist:1,perfectionist:1},x:{C:1}}],
+["Still reading the rejection like scripture.",{c:{rsd:2},t:{anx:1},x:{N:2}}],
+["Moved. Life is long.",{a:{optimist:1},t:{sec:1}}],
+["Never wanted through that door anyway.",{t:{avo:1},a:{nihilist:1}}]]},
+
+{q:"Love, defined by what you have actually seen:",o:[
+["Two people choosing it daily, quietly.",{t:{sec:1},a:{traditionalist:1}}],
+["Something that can be lost with one wrong move.",{t:{anx:2},w:{conditional:1},x:{N:1}}],
+["A story people tell. A good one. Just a story.",{a:{nihilist:2}}],
+["The thing I give better than I receive.",{a:{caregiver:2},w:{parentified:1}}]]},
+
+{q:"When you're struggling, the people closest to you:",o:[
+["Know within the day.",{t:{sec:1,anx:1}}],
+["Find out months later, casually, past tense.",{a:{stoic:1},t:{avo:1},w:{neglect:1}}],
+["Never find out. They have their own weather.",{w:{parentified:2},a:{caregiver:1}}],
+["Know something is off; I let them guess wrong.",{t:{dis:1},c:{autism:1},x:{G:1}}]]},
+
+{q:"Power — having it over someone — feels:",o:[
+["Like responsibility. Heavy, useful.",{a:{caregiver:1,traditionalist:1},x:{A:1}}],
+["Like safety. Never be beneath anyone again.",{c:{narcissist:1,cptsd:1},w:{father:1},x:{G:1}}],
+["Like a tool. Neutral. Point it well.",{a:{strategist:2,opportunist:1}}],
+["Uncomfortable. I'd rather nobody held it, including me.",{a:{idealist:1},t:{sec:1},x:{A:2}}]]},
+
+{q:"Complete the sentence honestly: \u201cSomeday, I want to be\u2026\u201d",o:[
+["\u2026someone my younger self would run to, not from.",{a:{idealist:2,caregiver:1},x:{O:1,A:1}}],
+["\u2026undeniable.",{a:{perfectionist:1},c:{narcissist:1},w:{conditional:1}}],
+["\u2026free. Nothing owed, nothing pending.",{t:{avo:1},a:{nihilist:1},x:{E:-1}}],
+["\u2026understood. Just once, fully.",{t:{anx:1},a:{artist:1},c:{rsd:1},x:{N:1}}]]}
+];
+
+/* ---------- THE OFF-SCRIPT ENGINE ----------
+   Signature pairs: answer combinations that form known signatures.
+   When detected mid-test, MIRROR breaks script and asks directly.
+   test() receives the pattern log (array of chosen tags like "q3b"). */
+const STRIKES=[
+{id:"npd",test:l=>has(l,"q2a")&&has(l,"q9a"),
+ q:"Do you feel uncomfortable when someone looks at you without being impressed?",
+ o:[["Yes. It itches.",{c:{narcissist:3}}],
+    ["Only from people who matter.",{c:{narcissist:2},w:{father:1}}],
+    ["No. I notice, and move on.",{t:{sec:1}}]]},
+{id:"adhd",test:l=>has(l,"q4a")&&has(l,"q12a"),
+ q:"Do you ever feel behind — even when you're on time?",
+ o:[["Constantly. The race has no finish line.",{c:{adhd:3}}],
+    ["Only on the bad weeks.",{c:{adhd:1}}],
+    ["No. Time and I have an agreement.",{x:{C:1}}]]},
+{id:"avo",test:l=>has(l,"q5a")&&has(l,"q14a"),
+ q:"Do you leave before anyone can leave you?",
+ o:[["Yes. First out is the only safe exit.",{t:{avo:3}}],
+    ["I have. I dress it up as standards.",{t:{avo:2}}],
+    ["No. I stay past the ending.",{t:{anx:1}}]]},
+{id:"father",test:l=>(has(l,"q7a")||has(l,"q7c"))&&has(l,"q18a"),
+ q:"When did you stop expecting to be chosen?",
+ o:[["Very early. I stopped auditioning and started performing.",{w:{father:3}}],
+    ["I still expect it. That is the problem.",{w:{father:2},t:{anx:1}}],
+    ["I never stopped being chosen.",{t:{sec:1}}]]},
+{id:"autism",test:l=>has(l,"q6a")&&has(l,"q16a"),
+ q:"How long can you perform normal before it costs you the whole night?",
+ o:[["About three hours. Then the battery dies socially.",{c:{autism:3}}],
+    ["All day — but the recovery is real.",{c:{autism:2}}],
+    ["Perform? This is just me.",{t:{sec:1}}]]},
+{id:"anx",test:l=>has(l,"q1b")&&has(l,"q11a"),
+ q:"When they take an hour to reply, where does your mind go — and how long does it live there?",
+ o:[["To the worst place. It lives there until they text.",{t:{anx:3},c:{rsd:1}}],
+    ["It visits the worst place, briefly.",{t:{anx:2}}],
+    ["Nowhere. An hour is an hour.",{t:{sec:1}}]]},
+{id:"codep",test:l=>has(l,"q15d")&&has(l,"q27c"),
+ q:"Whose mood decides what kind of day you're allowed to have?",
+ o:[["Everyone's but mine.",{c:{codependent:3}}],
+    ["One person's. You know which one.",{c:{codependent:2},w:{mother:1}}],
+    ["Mine. It took practice.",{t:{sec:1}}]]},
+{id:"perf",test:l=>has(l,"q3a")&&has(l,"q13a"),
+ q:"If the praise is real, why does it feel like a clerical error?",
+ o:[["Because the flaws know the truth.",{a:{perfectionist:3},c:{rsd:1}}],
+    ["Because earned praise feels like debt.",{w:{conditional:2}}],
+    ["It doesn't. Praise lands fine.",{t:{sec:1}}]]},
+{id:"nihil",test:l=>has(l,"q10a")&&has(l,"q28d"),
+ q:"When did caring start feeling like a scam you had already figured out?",
+ o:[["The first time caring cost me everything and changed nothing.",{a:{nihilist:3}}],
+    ["I still care. I just invoice it quietly.",{a:{nihilist:1},t:{avo:1}}],
+    ["Caring is the point. Even rigged.",{a:{idealist:1}}]]},
+{id:"rsd",test:l=>has(l,"q17a")&&has(l,"q22a"),
+ q:"A paused conversation. A shorter reply. How many seconds before you've written the whole rejection?",
+ o:[["Seconds. Sometimes before the pause ends.",{c:{rsd:3}}],
+    ["Minutes. I fight it and lose.",{c:{rsd:2}}],
+    ["I wait for actual evidence.",{t:{sec:1}}]]},
+{id:"bpd",test:l=>has(l,"q5d")&&has(l,"q24c"),
+ q:"Have you ever ended something you were begging to keep?",
+ o:[["Yes. Mid-beg. I watched myself do it.",{c:{bpd:3},t:{dis:1}}],
+    ["I've wanted to. The edit saved us.",{c:{bpd:1}}],
+    ["No. When I end it, it's already dead.",{a:{strategist:1}}]]},
+{id:"cptsd",test:l=>has(l,"q26a")&&has(l,"q10d"),
+ q:"Do you know where the exits are in every room you love?",
+ o:[["All of them. Especially the safe ones.",{c:{cptsd:3}}],
+    ["Most. It's reflex now, not fear.",{c:{cptsd:2}}],
+    ["No. Rooms are just rooms.",{t:{sec:1}}]]}
+];
+
+function has(log,tag){ return log.indexOf(tag)!==-1; }
+
+/* ---------- detected lines for the verdict ---------- */
+const DETECT={
+narcissist:"praise feeds you, indifference wounds you, and you have made peace with neither.",
+bpd:"your attachments run hot and total — you have ended things you were begging to keep.",
+adhd:"you live behind a schedule only you can see, and the shame costs more than the lateness.",
+autism:"you perform normal at professional grade, and the performance has a price.",
+ocd:"certainty is chased hourly and never caught; the checklist is fear, not order.",
+cptsd:"you scan every room you enter — including the safe ones. Especially the safe ones.",
+codependent:"your yes arrives before the question ends, and your no needs a witness.",
+rsd:"you rehearse conversations that will never happen.",
+alexithymia:"the feelings are present; the vocabulary declined to attend.",
+limerence:"uncertainty feeds you more than presence ever has.",
+father:"you are still auditioning for someone who left the theater.",
+mother:"her voice still moderates your inner parliament.",
+parentified:"you were the adult before you were finished being the child.",
+golden:"your family assigned you a role, and some part of you is still playing it.",
+neglect:"nothing bad happened — and you have been recovering from it ever since.",
+conditional:"you believe love is a wage, not a gift, and you are always slightly underpaid."
+};
+const ATTACH_LINE={
+sec:"SECURE — you can want people without auditing them. This is rarer than you think.",
+anx:"ANXIOUS — silence reads as abandonment; you monitor the people you love.",
+avo:"AVOIDANT — closeness registers as pressure; you keep the exits lit.",
+dis:"DISORGANIZED — you reach and retreat in the same motion."
+};
+const AXES=[["O","OPENNESS"],["C","ORDER"],["E","CHARGE"],["A","WARMTH"],["N","VOLTAGE"],["G","GUARD"]];
+
+/* ============================================================
+   NAVIGATION — simple screen switcher with an iOS-style back
+   ============================================================ */
+const TITLES={"scr-home":"MIRROR","scr-codex":"THE CODEX","scr-entry":"ENTRY",
+"scr-quiz":"THE READING","scr-verdict":"THE VERDICT"};
+let historyStack=["scr-home"];
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+  document.getElementById("navTitle").textContent=TITLES[id];
+  const back=document.getElementById("navBack");
+  if(historyStack[historyStack.length-1]!==id) historyStack.push(id);
+  back.style.display = historyStack.length>1 ? "block":"none";
+  window.scrollTo(0,0);
+}
+function goBack(){
+  historyStack.pop();
+  const prev=historyStack.pop()||"scr-home";
+  show(prev);
+}
+
+/* ============================================================
+   THE CODEX — library rendering + live search
+   ============================================================ */
+function renderCodex(){
+  const q=(document.getElementById("search").value||"").toLowerCase().trim();
+  const list=document.getElementById("codexList");
+  const cats=["ARCHETYPES","ATTACHMENT STYLES","WOUNDS","CLINICAL PATTERNS"];
+  let html="",hits=0;
+  cats.forEach(cat=>{
+    const items=ENTRIES.filter(e=>e.cat===cat && matchEntry(e,q));
+    if(!items.length) return;
+    hits+=items.length;
+    html+='<div class="group-title">'+cat+"</div><div class='group'>";
+    items.forEach(e=>{
+      html+='<div class="cell" onclick="openEntry(\''+e.id+'\')">'
+        +'<div class="nm">'+e.n+"</div>"
+        +'<div class="ep">'+e.ep+"</div></div>";
+    });
+    html+="</div>";
+  });
+  list.innerHTML=html;
+  document.getElementById("noRes").style.display = hits? "none":"block";
+}
+function matchEntry(e,q){
+  if(!q) return true;
+  const hay=(e.n+" "+e.ep+" "+e.es+" "+e.kw.join(" ")).toLowerCase();
+  return q.split(/\s+/).every(w=>hay.indexOf(w)!==-1);
+}
+function openEntry(id){
+  const e=ENTRIES.find(x=>x.id===id); if(!e) return;
+  const rwLabels=["RAISE","LOVE","WORK WITH","NEGOTIATE WITH"];
+  let h='<div class="entry-head"><div class="entry-cat">'+e.cat+'</div>'
+    +'<div class="entry-name">'+e.n+'</div>'
+    +'<div class="entry-ep">\u201C'+e.ep+'\u201D</div><div class="hairline"></div></div>';
+  h+='<div class="section"><h3>THE ESSENCE</h3><p>'+e.es+"</p></div>";
+  h+='<div class="section"><h3>STRENGTHS</h3><ul>'+e.st.map(s=>"<li>"+s+"</li>").join("")+"</ul></div>";
+  h+='<div class="section"><h3>WEAKNESSES</h3><ul>'+e.wk.map(s=>"<li>"+s+"</li>").join("")+"</ul></div>";
+  h+='<div class="section"><h3>LOVES · FEARS · HATES</h3><div class="tri">'
+    +"<div><b>LOVES</b>"+e.lv+"</div><div><b>FEARS</b>"+e.fr+"</div><div><b>HATES</b>"+e.ht+"</div>"
+    +"</div></div>";
+  h+='<div class="section"><h3>HOW TO SPOT ONE</h3><ul>'+e.sp.map(s=>"<li>"+s+"</li>").join("")+"</ul></div>";
+  h+='<div class="section"><h3>HOW TO HANDLE ONE</h3><ul>'
+    +e.rw.map((s,i)=>"<li><b>"+rwLabels[i]+"</b> — "+s.split(": ")[1]+"</li>").join("")+"</ul></div>";
+  h+='<div class="section"><h3>THE BLIND SPOT</h3><p>'+e.bl+"</p></div>";
+  h+='<div class="section"><h3>ORIGIN</h3><p>'+e.or+"</p></div>";
+  h+='<div class="section"><h3>CROSS-LINKS</h3><div>'
+    +e.lk.map(l=>{const t=ENTRIES.find(x=>x.id===l);
+      return t?'<span class="link-chip" onclick="openEntry(\''+l+'\')">'+t.n+"</span>":"";}).join("")
+    +"</div></div>";
+  if(e.clin) h+='<div class="prof-note">A professional sees what a codex cannot.</div>';
+  document.getElementById("entryBody").innerHTML=h;
+  show("scr-entry");
+}
+
+/* ============================================================
+   THE QUIZ — engine, pattern log, off-script interrupter
+   ============================================================ */
+let S=null; // quiz state
+function startQuiz(){
+  S={qi:0,log:[],a:{},t:{},w:{},c:{},x:{},fired:[],pending:null};
+  show("scr-quiz");
+  renderQ();
+}
+function renderQ(){
+  const strike=S.pending;
+  const total=QUESTIONS.length;
+  const done=S.log.length;
+  document.getElementById("pfill").style.width=Math.min(100,done/total*100)+"%";
+  const card=document.getElementById("qcard");
+  const qtext=document.getElementById("qtext");
+  const opts=document.getElementById("opts");
+  let qobj;
+  if(strike){
+    document.getElementById("qcount").textContent="OFF SCRIPT — SIGNATURE DETECTED";
+    card.classList.add("strike");
+    qtext.innerHTML='<span class="strike-tag">MIRROR INTERRUPTS</span>'+strike.q;
+    qobj=strike;
+  }else{
+    document.getElementById("qcount").textContent="SCENARIO "+(S.qi+1)+" OF "+total;
+    card.classList.remove("strike");
+    qtext.textContent=QUESTIONS[S.qi].q;
+    qobj=QUESTIONS[S.qi];
+  }
+  opts.innerHTML="";
+  qobj.o.forEach((op,i)=>{
+    const d=document.createElement("div");
+    d.className="opt";
+    d.innerHTML='<div class="cell"><div class="nm" style="font-weight:500;letter-spacing:0;line-height:1.6">'+op[0]+"</div></div>";
+    d.onclick=()=>answer(qobj,op[1],i);
+    opts.appendChild(d);
+  });
+  // re-trigger slide animation
+  card.style.animation="none"; void card.offsetWidth; card.style.animation="";
+}
+function answer(qobj,score,optIdx){
+  // 1. pattern log — every answer is recorded
+  let tag;
+  if(qobj.id){ tag="strike-"+qobj.id+optIdx; }
+  else{ tag="q"+(S.qi+1)+String.fromCharCode(97+optIdx); S.qi++; }
+  S.log.push(tag);
+  // 2. apply hidden scores
+  apply(S.a,score.a); apply(S.t,score.t); apply(S.w,score.w);
+  apply(S.c,score.c); apply(S.x,score.x);
+  // 3. off-script check: any unfired signature now complete?
+  if(!S.pending){
+    for(const st of STRIKES){
+      if(S.fired.indexOf(st.id)===-1 && st.test(S.log)){
+        S.fired.push(st.id); S.pending=st; break;
+      }
+    }
+  }else{
+    S.pending=null;
+  }
+  // 4. advance or finish
+  if(S.pending){ renderQ(); return; }
+  if(S.qi<QUESTIONS.length){ renderQ(); return; }
+  runScan();
+}
+function apply(obj,delta){ if(!delta) return;
+  for(const k in delta) obj[k]=(obj[k]||0)+delta[k]; }
+
+/* ---------- the fake scan: MIRROR thinking ---------- */
+function runScan(){
+  const el=document.getElementById("scan");
+  const lines=document.getElementById("scanLines");
+  el.style.display="block";
+  const steps=["INDEXING "+S.log.length+" RESPONSES...",
+    "CROSS-REFERENCING SIGNATURE PAIRS...",
+    S.fired.length+" OFF-SCRIPT SIGNATURES FIRED...",
+    "WEIGHING CONTRADICTIONS (CONTRADICTIONS ARE DATA)...",
+    "TRIANGULATING ATTACHMENT PATTERN...",
+    "RENDERING VERDICT."];
+  lines.innerHTML="";
+  let i=0;
+  const iv=setInterval(()=>{
+    lines.innerHTML+="&gt; "+steps[i]+"<br>";
+    i++;
+    if(i>=steps.length){ clearInterval(iv);
+      setTimeout(()=>{ el.style.display="none"; verdict(); },600); }
+  },520);
+}
+
+/* ============================================================
+   THE VERDICT
+   ============================================================ */
+function verdict(){
+  // --- archetype blend: top two of ten ---
+  const archs=Object.keys(S.a).sort((x,y)=>S.a[y]-S.a[x]);
+  const top=archs[0], second=archs[1];
+  const topEntry=ENTRIES.find(e=>e.id===top);
+  const secEntry=ENTRIES.find(e=>e.id===second);
+  const sum=S.a[top]+(S.a[second]||0);
+  const pTop=Math.round(S.a[top]/sum*100), pSec=100-pTop;
+  // --- attachment: highest tally, sec wins ties softly ---
+  const attOrder=["sec","anx","avo","dis"].sort((x,y)=>(S.t[y]||0)-(S.t[x]||0));
+  const att=attOrder[0];
+  const attEntry=ENTRIES.find(e=>e.id===({sec:"secure",anx:"anxious",avo:"avoidant",dis:"disorganized"})[att]);
+  // --- detected flags: clinical + wounds above threshold ---
+  const flags=[];
+  for(const k in S.c){ if(k!=="manipulator" && S.c[k]>=3) flags.push(["c",k]); }
+  for(const k in S.w){ if(S.w[k]>=2) flags.push(["w",k]); }
+  flags.sort((a,b)=>(S[b[0]][b[1]]||0)-(S[a[0]][a[1]]||0));
+  // --- confidence: margin between top archetypes + consistency ---
+  const margin=S.a[top]-(S.a[second]||0);
+  const totalArch=Object.values(S.a).reduce((s,v)=>s+v,0)||1;
+  const share=S.a[top]/totalArch;
+  let conf="PROBABLE";
+  if(margin>=4&&share>=0.3) conf="CERTAIN";
+  else if(margin<=1) conf="MIXED";
+
+  // ---------- render ----------
+  let h='<div class="verdict-stamp"><div class="stamp">'+conf+'</div></div>';
+  h+='<div class="blend"><div class="big">'+pTop+"% "+topEntry.n.replace("THE ","")+'</div>'
+    +'<div class="pair">'+pSec+"% "+secEntry.n.replace("THE ","")+" — and they argue at night.</div>"
+    +'<div class="blend-bar"><div class="a" style="width:'+pTop+'%"></div><div class="b" style="width:'+pSec+'%"></div></div></div>';
+  h+='<div class="section" style="text-align:center"><p style="font-family:Georgia,serif;font-style:italic">'
+    +topEntry.ep+"</p>"
+    +'<p style="margin-top:10px"><span class="link-chip" onclick="openEntry(\''+topEntry.id+'\')">READ THE FULL ENTRY</span>'
+    +' <span class="link-chip" onclick="openEntry(\''+secEntry.id+'\')">'+secEntry.n+"</span></p></div>";
+  h+='<div class="section"><h3>THE SHAPE OF YOU — SIX AXES</h3><canvas id="radar" width="320" height="300"></canvas></div>';
+  h+='<div class="section"><h3>ATTACHMENT</h3><p>'+ATTACH_LINE[att]+'</p>'
+    +'<p style="margin-top:8px"><span class="link-chip" onclick="openEntry(\''+attEntry.id+'\')">READ THE FULL ENTRY</span></p></div>';
+  if(flags.length){
+    h+='<div class="detect"><h3 style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:12px;">DETECTED</h3>';
+    flags.slice(0,6).forEach(f=>{
+      h+="<p><b>Detected:</b> "+DETECT[f[1]]+"</p>";
+    });
+    h+="</div>";
+    h+='<div class="section"><h3>RELATED ENTRIES</h3><div>'
+      +flags.slice(0,6).map(f=>{const e=ENTRIES.find(x=>x.id===f[1]);
+        return e?'<span class="link-chip" onclick="openEntry(\''+e.id+'\')">'+e.n+"</span>":"";}).join("")
+      +"</div></div>";
+  }
+  h+='<div class="disclaimer">This is an educated read, not a diagnosis. If it rings true, that is data — take it to a professional, not to a label.</div>';
+  h+='<div class="stat-row">'+S.log.length+" ANSWERS LOGGED · "+S.fired.length+" SIGNATURES FIRED · CONFIDENCE "+conf+"</div>";
+  h+='<button class="gloss-btn" onclick="startQuiz()">Read Me Again</button>'
+    +'<button class="gloss-btn ghost" onclick="show(\'scr-codex\')">Enter the Codex</button>';
+  document.getElementById("verdictBody").innerHTML=h;
+  show("scr-verdict");
+  drawRadar();
+}
+
+/* ---------- radar chart — plain canvas, 6 axes ---------- */
+function drawRadar(){
+  const cv=document.getElementById("radar"); if(!cv) return;
+  const ctx=cv.getContext("2d");
+  const cx=160,cy=155,R=100,n=AXES.length;
+  // normalize each axis to 0..1 (range roughly -6..+6)
+  const vals=AXES.map(a=>{const v=S.x[a[0]]||0; return Math.max(0,Math.min(1,(v+6)/12));});
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.font="9px Helvetica"; ctx.textAlign="center";
+  // grid rings
+  for(let r=1;r<=4;r++){
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){ const ang=-Math.PI/2+i*(Math.PI*2/n);
+      const rad=R*r/4;
+      const x=cx+Math.cos(ang)*rad, y=cy+Math.sin(ang)*rad;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.strokeStyle="#d6d4cf"; ctx.stroke();
+  }
+  // spokes + labels
+  for(let i=0;i<n;i++){
+    const ang=-Math.PI/2+i*(Math.PI*2/n);
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(ang)*R,cy+Math.sin(ang)*R);
+    ctx.strokeStyle="#e0ded9"; ctx.stroke();
+    ctx.fillStyle="#777";
+    ctx.fillText(AXES[i][1],cx+Math.cos(ang)*(R+24),cy+Math.sin(ang)*(R+22)+3);
+  }
+  // the shape of you
+  ctx.beginPath();
+  for(let i=0;i<=n;i++){ const idx=i%n;
+    const ang=-Math.PI/2+idx*(Math.PI*2/n);
+    const rad=R*(0.08+0.92*vals[idx]);
+    const x=cx+Math.cos(ang)*rad, y=cy+Math.sin(ang)*rad;
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.closePath();
+  ctx.fillStyle="rgba(0,0,0,.18)"; ctx.fill();
+  ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.stroke();
+}
+
+/* ---------- boot ---------- */
+renderCodex();
+</script>
+</body>
+</html>
