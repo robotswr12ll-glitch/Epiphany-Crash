@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirror Unified — Ad</title>
+<style>
+/* ============================================================
+   MIRROR UNIFIED — KEYNOTE-STYLE AD
+   Black stage · huge tight headlines · words rise out of nowhere
+   from behind a mask · iOS-6 gloss kept for the app UI.
+   Everything scales from one unit (--u) set by JS, so type stays
+   big and readable in 16:9, 9:16 and 1:1.
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --ink:#111; --paper:#fdfdfb; --white:#f5f5f7; --gray:#86868b;
+  --mono:"SF Mono","Courier New",monospace;
+  --sans:"SF Pro Display","Helvetica Neue",-apple-system,Helvetica,Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease-in:cubic-bezier(.7,0,.84,0);
+}
+html,body{height:100%;background:#000;overflow:hidden}
+body{font-family:var(--sans);color:var(--white);-webkit-font-smoothing:antialiased}
+
+/* ---------- stage frame & aspect preview ---------- */
+#frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+#stage{
+  --u:12px; --rw:300px;
+  --hero:calc(var(--u)*13);
+  --h1:calc(var(--u)*7.2);
+  --h2:calc(var(--u)*4.6);
+  --sub:max(17px,calc(var(--u)*2.9));
+  --cap:max(13px,calc(var(--u)*1.8));
+  position:relative;background:#000;overflow:hidden;width:100vw;height:100vh;
+  box-shadow:0 0 120px rgba(255,255,255,.06);
+}
+#stage:fullscreen{width:100vw;height:100vh}
+
+/* ---------- scenes ---------- */
+.scene{
+  position:absolute;inset:0;display:none;isolation:isolate;
+  background:#000;flex-direction:column;align-items:center;justify-content:center;
+  padding:6%;text-align:center;
+}
+.scene.on{display:flex}
+
+/* ============================================================
+   TEXT MOTION — words rise from below a mask ("out of nowhere")
+   .rx  = text block, split into words by JS
+   .show = words rise in, staggered
+   .out / scene.leave = words rise out through the top
+   ============================================================ */
+.rx{font-weight:700;letter-spacing:-.045em;line-height:1.06;text-wrap:balance;color:var(--white)}
+.rx .w{display:inline-block;overflow:hidden;vertical-align:top;padding:.08em .03em .18em;margin:-.08em -.03em -.18em}
+.rx .wi{display:inline-block;transform:translateY(125%);opacity:0;will-change:transform}
+.rx.show .wi{
+  transform:none;opacity:1;
+  transition:transform 1.15s var(--ease) calc(var(--i)*var(--st,85ms)),
+             opacity .7s ease calc(var(--i)*var(--st,85ms));
+}
+.rx.out .wi{transform:translateY(-125%);opacity:0;transition:transform .38s var(--ease-in),opacity .3s ease}
+.scene.leave .rx .wi{
+  transform:translateY(-125%);opacity:0;
+  transition:transform .45s var(--ease-in) calc(var(--i)*28ms),opacity .35s ease calc(var(--i)*28ms);
+}
+.hero{font-size:var(--hero);letter-spacing:-.055em;line-height:1}
+.hero.sm{font-size:calc(var(--u)*11)}
+.h1{font-size:var(--h1)}
+.h2{font-size:var(--h2);letter-spacing:-.035em}
+.sub{font-size:var(--sub);font-weight:500;letter-spacing:-.015em;line-height:1.35}
+.dim{color:var(--gray)}
+.it{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.02em}
+.tnum{font-variant-numeric:tabular-nums}
+.grad .wi{background:linear-gradient(180deg,#fff 20%,#8e8e93 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad2 .wi{background:linear-gradient(180deg,#d6d6da 10%,#505055 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* blocks (cards, bars, buttons) rise and de-blur */
+.pop{opacity:0;transform:translateY(calc(var(--u)*6)) scale(.96);filter:blur(10px)}
+.pop.in{opacity:1;transform:none;filter:none;
+  transition:opacity 1s ease,transform 1.2s var(--ease),filter 1s ease}
+.scene.leave .pop{opacity:0;transform:translateY(calc(var(--u)*-3));filter:none;
+  transition:opacity .4s ease,transform .45s var(--ease-in)}
+
+/* soft spotlight behind brand moments */
+.glow{position:absolute;left:50%;top:50%;width:110%;height:110%;transform:translate(-50%,-50%);
+  z-index:-1;pointer-events:none;opacity:0;
+  background:radial-gradient(closest-side,rgba(255,255,255,.17),rgba(255,255,255,.04) 55%,transparent 100%)}
+.glow.in{opacity:1;transition:opacity 2.2s ease;animation:breathe 5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+.rule{width:calc(var(--u)*10);height:2px;background:#fff;margin:calc(var(--u)*2.6) auto}
+
+/* ---------- PLAIN scenes: original-style hard cuts, text just appears ---------- */
+.scene.plain .rx .wi{transform:none}
+.scene.plain .rx.show .wi{transition:none;opacity:1}
+.scene.plain .pop{transform:none;filter:none}
+.scene.plain .pop.in{transition:none;opacity:1}
+.scene.plain .q-card.qin{animation:none}
+.scene.plain .opt{animation:none}
+.scene.plain .opt.sel{animation:optflash .5s ease both}
+.scene.plain .progress-fill{transition:none}
+.scene.plain .tl{transition:none}
+
+/* ---------- ACT 1 : the hook ---------- */
+.bubble{
+  background:#2c2c2e;color:#f5f5f7;border-radius:1.5em;padding:.7em 1.1em;
+  font-size:calc(var(--u)*3.6);font-weight:500;letter-spacing:-.02em;line-height:1.25;
+  max-width:92%;text-align:left;box-shadow:0 20px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.1)}
+.bubble small{display:block;margin-top:.5em;font-size:max(12px,.34em);font-weight:500;color:#8e8e93;letter-spacing:.02em}
+
+/* ---------- ACT 2 : the reading ---------- */
+.adnav{
+  position:absolute;top:0;left:0;right:0;height:max(42px,calc(var(--u)*4.6));
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(#6a6a6a 0%,#3a3a3a 48%,#161616 52%,#000 100%);
+  border-bottom:1px solid #000;box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 2px 8px rgba(0,0,0,.35)}
+.adnav span{font-size:max(14px,calc(var(--u)*1.9));letter-spacing:.32em;font-weight:700;
+  color:#f4f4f4;text-shadow:0 -1px 0 #000;text-transform:uppercase}
+.qwrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;
+  padding-top:max(46px,calc(var(--u)*5))}
+.progress-shell{height:max(10px,calc(var(--u)*1));border-radius:99px;border:1px solid #555;
+  background:linear-gradient(#333,#222);overflow:hidden;width:min(calc(var(--u)*50),80%);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.progress-fill{height:100%;width:0%;transition:width .7s var(--ease);
+  background:linear-gradient(#9a9a9a 0%,#4a4a4a 50%,#1c1c1c 51%,#3a3a3a 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.q-card{
+  font-size:max(14px,calc(var(--u)*2));
+  background:var(--paper);color:var(--ink);border:1px solid #b9b7b2;border-radius:.9em;
+  box-shadow:0 20px 70px rgba(0,0,0,.7);padding:1.1em 1.2em;margin:1.1em 0;
+  width:min(calc(var(--u)*62),100%);text-align:left}
+.q-card.qin{animation:qin .8s var(--ease) both}
+@keyframes qin{from{opacity:0;transform:translateY(calc(var(--u)*5)) scale(.97)}to{opacity:1;transform:none}}
+.q-text{font-size:1.3em;line-height:1.4;font-weight:600;letter-spacing:-.015em}
+.opt{margin-top:.55em;border:1px solid #cfcdc8;border-radius:.65em;background:#fff;
+  padding:.65em .85em;font-size:1em;line-height:1.35;color:#333;
+  animation:optin .7s var(--ease) both;animation-delay:calc(var(--k)*110ms + 300ms)}
+@keyframes optin{from{opacity:0;transform:translateY(1em)}to{opacity:1;transform:none}}
+.opt.sel{background:#111;color:#fff;border-color:#111;animation:optflash .5s ease both}
+@keyframes optflash{0%{background:#fff;color:#333;transform:scale(1)}40%{background:#111;color:#fff;transform:scale(1.025)}100%{background:#111;color:#fff;transform:scale(1)}}
+.q-count{font-size:var(--cap);letter-spacing:.28em;color:var(--gray);text-transform:uppercase;margin-top:.4em}
+
+.q-card.strike{background:#0d0d0d;color:#f2f2f2;border-color:#333;margin-top:calc(var(--u)*3.4)}
+.q-card.strike .q-text{font-family:var(--serif);font-style:italic;font-weight:400;font-size:1.9em;line-height:1.3;letter-spacing:-.01em}
+.strike-tag{font-size:max(12px,.62em);letter-spacing:.3em;color:#aaa;text-transform:uppercase;display:block;margin-bottom:1em}
+
+/* scan */
+#s2d{background:#050505}
+.scanline{position:absolute;left:0;right:0;height:3px;background:rgba(255,255,255,.4);animation:scanmove 1.8s linear infinite;z-index:2}
+@keyframes scanmove{0%{top:0}100%{top:100%}}
+.scanlines-bg{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px)}
+.terminal{font-family:var(--mono);font-size:max(13px,calc(var(--u)*2.3));letter-spacing:.08em;
+  line-height:2.1;color:#e4e4e4;text-align:left;width:min(calc(var(--u)*62),92%);margin-top:calc(var(--u)*3)}
+.terminal .dim{color:#666}
+.tl{opacity:0;transform:translateY(.9em);transition:opacity .5s ease,transform .6s var(--ease)}
+.tl.in{opacity:1;transform:none}
+#radar{display:block;width:var(--rw);height:auto;aspect-ratio:680/640;margin-top:calc(var(--u)*1.5)}
+
+/* stats */
+.stats{display:flex;gap:calc(var(--u)*7);justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.stat{text-align:center}
+.num{font-size:calc(var(--u)*11);font-weight:800;letter-spacing:-.05em;line-height:1;
+  font-variant-numeric:tabular-nums;color:#fff}
+.lbl{font-size:var(--sub);font-weight:500;color:var(--gray);letter-spacing:-.01em;margin-top:.2em}
+#stage[data-o="p"] .stats{flex-direction:column;gap:calc(var(--u)*2.2);align-items:center}
+#stage[data-o="p"] .num{font-size:calc(var(--u)*9)}
+
+/* verdict */
+.stamp{display:inline-block;border:3px double #fff;padding:.5em 1.4em;
+  font-size:max(14px,calc(var(--u)*2));letter-spacing:.4em;text-indent:.4em;font-weight:800;transform:rotate(-2deg);color:#fff}
+.vrow{display:flex;gap:.28em;justify-content:center;align-items:baseline;flex-wrap:wrap;
+  font-size:calc(var(--u)*8);margin-top:calc(var(--u)*3.4)}
+.vrow .num{font-size:1em}
+.vrow .rx{font-size:1em}
+.blend-bar{display:flex;height:max(12px,calc(var(--u)*1.3));border-radius:99px;overflow:hidden;
+  border:1px solid #777;margin:calc(var(--u)*3) auto 0;width:min(calc(var(--u)*56),84%)}
+.blend-bar .a{background:#f2f2f2;width:0%}
+.blend-bar .b{background:#8a8a8a;width:0%}
+.blend-bar .c{background:#4a4a4a;width:0%}
+.codex-label{font-size:var(--cap);letter-spacing:.28em;color:var(--gray);text-transform:uppercase;margin-top:calc(var(--u)*4.5)}
+#codexFlash{min-height:1.2em;margin-top:.35em;font-size:calc(var(--u)*4.2)}
+
+/* ---------- ACT 3 : the landing ---------- */
+.crisis{position:absolute;left:0;right:0;bottom:0;background:#0a0a0a;color:#bdbdc2;text-align:center;
+  font-size:max(11px,calc(var(--u)*1.3));letter-spacing:.04em;line-height:1.6;padding:.9em 1em;border-top:1px solid #2a2a2a}
+.crisis b{color:#fff}
+.gloss-btn{cursor:pointer;
+  display:inline-block;margin-top:calc(var(--u)*4);padding:.65em 1.9em;
+  font-size:max(15px,calc(var(--u)*2.4));font-weight:700;letter-spacing:.18em;text-indent:.18em;text-transform:uppercase;
+  color:#fff;text-shadow:0 -1px 0 #000;text-align:center;
+  background:linear-gradient(#8a8a8a 0%,#444 50%,#101010 51%,#2a2a2a 100%);
+  border:1px solid #000;border-radius:.55em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 6px rgba(0,0,0,.35);
+}
+.gloss-btn.in{animation:btnpulse 2.6s ease-in-out 1.2s infinite}
+@keyframes btnpulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 6px rgba(0,0,0,.35)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 44px rgba(255,255,255,.3)}}
+
+/* glitch */
+.glitching{animation:glitch .55s steps(2) both}
+@keyframes glitch{
+  0%{transform:translate(0);filter:none}
+  20%{transform:translate(-8px,3px);filter:invert(1)}
+  40%{transform:translate(6px,-4px);clip-path:inset(20% 0 40% 0)}
+  60%{transform:translate(-4px,2px);filter:invert(1);clip-path:inset(60% 0 10% 0)}
+  80%{transform:translate(3px,-2px);clip-path:inset(10% 0 70% 0)}
+  100%{transform:translate(0);filter:none;clip-path:none}
+}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:50;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.65) 100%)}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<div id="frame">
+<div id="stage">
+
+  <!-- ================= ACT 1 : the hook ================= -->
+  <div class="scene plain" id="s1a">
+    <div class="bubble pop" id="bub">we need to talk tomorrow.<small>Delivered · 11:47 PM</small></div>
+    <div class="rx sub dim" id="c1" style="margin-top:calc(var(--u)*4.5)">Everyone knows this feeling.</div>
+  </div>
+
+  <div class="scene plain" id="s1b">
+    <div class="rx h1" id="t1">Re-reading the last ten messages.</div>
+  </div>
+
+  <div class="scene plain" id="s1c">
+    <div class="rx h1" id="t2" style="--st:240ms">Drafting.<br>Deleting.<br>Drafting.</div>
+  </div>
+
+  <div class="scene plain" id="s1d">
+    <div class="rx hero tnum" id="t3">3:04 AM</div>
+    <div class="rx sub dim" id="t3b" style="margin-top:calc(var(--u)*2.4)">The ceiling. Again.</div>
+  </div>
+
+  <div class="scene plain" id="s1e">
+    <div class="rx h1" id="vo1">It watches what you do.</div>
+    <div class="rx h1 dim" id="vo2" style="margin-top:.3em">Not what you say.</div>
+  </div>
+
+  <!-- brand intro (after glitch) -->
+  <div class="scene" id="s2a">
+    <div class="glow" id="g1"></div>
+    <div class="rx sub dim" id="intro" style="margin-bottom:calc(var(--u)*1.6)">Introducing</div>
+    <div class="rx hero grad" id="brand1">Mirror</div>
+    <div class="rx hero grad2" id="brand2">Unified.</div>
+    <div class="rule pop" id="brand3"></div>
+    <div class="rx sub it dim" id="brand4">a profiler's grimoire of human psychology</div>
+  </div>
+
+  <!-- ================= ACT 2 : the reading ================= -->
+  <div class="scene" id="s2q">
+    <div class="rx h1" id="q0">Thirty-two moments.</div>
+    <div class="rx h1 dim" id="q0b" style="margin-top:.25em">Answer like nobody's watching.</div>
+  </div>
+
+  <div class="scene plain" id="s2b">
+    <div class="adnav"><span>The Reading</span></div>
+    <div class="qwrap">
+      <div class="progress-shell"><div class="progress-fill" id="adfill"></div></div>
+      <div class="q-card" id="adcard">
+        <div class="q-text" id="adq"></div>
+        <div id="adopts"></div>
+      </div>
+      <div class="q-count" id="adcount"></div>
+    </div>
+  </div>
+
+  <div class="scene plain" id="s2c" style="background:#050505">
+    <div class="rx h1" id="strikeTitle">Then it goes off script.</div>
+    <div class="q-card strike pop" id="strikeCard">
+      <span class="strike-tag">Off script — signature detected</span>
+      <div class="q-text">Do you leave before anyone can leave you?</div>
+    </div>
+  </div>
+
+  <div class="scene" id="s2n">
+    <div class="stats">
+      <div class="stat pop" id="st1"><div class="num" id="n1">0</div><div class="lbl">scenarios</div></div>
+      <div class="stat pop" id="st2"><div class="num" id="n2">0</div><div class="lbl">codex entries</div></div>
+      <div class="stat pop" id="st3"><div class="num" id="n3">0</div><div class="lbl">instruments</div></div>
+    </div>
+    <div class="rx h1 it" id="oneland" style="margin-top:calc(var(--u)*4)">One landscape.</div>
+  </div>
+
+  <div class="scene plain" id="s2d">
+    <div class="scanlines-bg"></div>
+    <div class="scanline"></div>
+    <div class="rx h2" id="ttl">Contradictions are data.</div>
+    <div class="terminal" id="term"></div>
+  </div>
+
+  <div class="scene plain" id="s2e">
+    <div class="scanlines-bg"></div>
+    <div class="rx h2" id="shape">The shape of you.</div>
+    <canvas id="radar" width="680" height="640"></canvas>
+  </div>
+
+  <div class="scene" id="s2f">
+    <div class="stamp pop" id="stamp1">PROBABLE</div>
+    <div class="vrow">
+      <span class="num pop" id="vnum">0%</span>
+      <span class="rx" id="vword">Strategist</span>
+    </div>
+    <div class="rx sub it dim" id="vpair" style="margin-top:.6em">24% Perfectionist — and they argue at night.</div>
+    <div class="blend-bar pop" id="bbw"><div class="a" id="bb1"></div><div class="b" id="bb2"></div><div class="c" id="bb3"></div></div>
+    <div class="codex-label pop" id="cxl">From the codex</div>
+    <div class="rx" id="codexFlash"></div>
+  </div>
+
+  <!-- ================= ACT 3 : the landing ================= -->
+  <div class="scene" id="s3a">
+    <div class="rx h1 it" id="disc1">An educated read.<br>Never a diagnosis.</div>
+    <div class="rx sub dim" id="disc2" style="margin-top:calc(var(--u)*3.4);max-width:92%">Know your pattern. Find your people. Talk to a professional.</div>
+    <div class="crisis">In crisis? <b>Call or text 988</b> (US) · Text <b>HOME</b> to <b>741741</b> · findahelpline.com</div>
+  </div>
+
+  <div class="scene" id="s3b">
+    <div class="glow" id="g2"></div>
+    <div class="rx hero sm grad" id="f1">Mirror Unified.</div>
+    <div class="rx sub dim" id="f3" style="margin-top:calc(var(--u)*2.4)">32 scenarios. 150 entries.<br>Six instruments. One landscape.</div>
+    <div class="gloss-btn pop" id="f4">Begin the Reading</div>
+    <div class="crisis">In crisis? <b>Call or text 988</b> (US) · an educated read, never a diagnosis · ESC to close</div>
+  </div>
+
+  <div class="vignette"></div>
+
+</div>
+</div>
+
+<script>
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $=id=>document.getElementById(id);
+let RUN=0; /* bumping RUN cancels any ad that is still playing (used by Replay) */
+const sleep=ms=>{const my=RUN;return new Promise((res,rej)=>setTimeout(()=>my===RUN?res():rej("cancel"),ms))};
+
+/* --- responsive unit: one number drives every font size --- */
+function fit(){
+  const s=$("stage"),w=s.clientWidth,h=s.clientHeight;
+  const portrait=h>w*1.05;
+  const u=portrait?Math.min(w/100*1.3,h/70):Math.min(w/112,h/70);
+  s.style.setProperty("--u",u+"px");
+  s.style.setProperty("--rw",Math.min(w*.9,h*(portrait?.42:.56)*680/640)+"px");
+  s.dataset.o=portrait?"p":"l";
+}
+new ResizeObserver(fit).observe($("stage"));
+window.addEventListener("resize",fit);fit();
+
+/* --- split text into masked words so each can rise on its own --- */
+function wrap(node){
+  [...node.childNodes].forEach(n=>{
+    if(n.nodeType===3){
+      const frag=document.createDocumentFragment();
+      n.textContent.split(/(\s+)/).forEach(p=>{
+        if(!p)return;
+        if(/^\s+$/.test(p)){frag.append(" ");return}
+        const w=document.createElement("span");w.className="w";
+        const i=document.createElement("span");i.className="wi";i.textContent=p;
+        w.append(i);frag.append(w);
+      });
+      n.replaceWith(frag);
+    }else if(n.nodeType===1&&n.tagName!=="BR")wrap(n);
+  });
+}
+function index(el){el.querySelectorAll(".wi").forEach((w,i)=>w.style.setProperty("--i",i))}
+document.querySelectorAll(".rx").forEach(el=>{if(el.textContent.trim()){wrap(el);index(el)}});
+
+/* --- scene + motion control --- */
+function resetFx(scope){(scope||document).querySelectorAll(".rx,.pop,.glow").forEach(e=>e.classList.remove("show","in","out"))}
+async function go(id,leave=430){
+  const cur=document.querySelector(".scene.on");
+  if(cur&&cur.id!==id&&leave&&!cur.classList.contains("plain")){cur.classList.add("leave");await sleep(leave)}
+  document.querySelectorAll(".scene").forEach(s=>s.classList.remove("on","leave"));
+  const sc=$(id);resetFx(sc);sc.classList.add("on");
+  await sleep(70);
+}
+async function say(id,hold=900){$(id).classList.add("show");await sleep(hold)}   /* words rise in */
+async function pop(id,hold=900){$(id).classList.add("in");await sleep(hold)}     /* block rises in */
+async function swap(el,text){                                                    /* old words exit up, new rise in */
+  if(el.querySelector(".wi")){el.classList.add("out");await sleep(340)}
+  el.classList.remove("show","out");el.textContent=text;wrap(el);index(el);
+  void el.offsetWidth;await sleep(30);el.classList.add("show");
+}
+/* rAF-driven counter with a hard safety net: never hangs, even if
+   frames are throttled (background tab, preview iframe, low power). */
+async function countTo(el,to,ms=1300,suffix=""){
+  const t0=performance.now();let last=-1,done=false;
+  await new Promise(res=>{
+    const finish=()=>{if(!done){done=true;el.textContent=to+suffix;res()}};
+    const safety=setTimeout(finish,ms+500);
+    (function f(t){
+      if(done)return;
+      const p=Math.min(1,(t-t0)/ms),v=Math.round(to*(1-Math.pow(1-p,4)));
+      el.textContent=v+suffix;
+      if(v!==last&&v%3===0)AudioEngine.tick();last=v;
+      if(p<1)requestAnimationFrame(f);else{clearTimeout(safety);finish()}
+    })(t0);
+  });
+}
+
+/* ============================================================
+   AUDIO ENGINE — soundtrack synthesized in the browser
+   ============================================================ */
+const AudioEngine=(()=>{
+  let ctx=null,master=null,muted=false;
+  function init(){
+    try{
+      if(ctx){if(ctx.state==="suspended")ctx.resume();return}
+      ctx=new (window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain();master.gain.value=muted?0:.5;master.connect(ctx.destination);
+      startDrone();startMelody();
+    }catch(err){console.warn("audio unavailable, continuing silent",err)}
+  }
+  function startDrone(){
+    const g=ctx.createGain();g.gain.value=.10;
+    const lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=220;lp.Q.value=.7;
+    [[55,.5],[55.7,.4],[110,.25],[164.8,.12]].forEach(([f,v])=>{
+      const o=ctx.createOscillator();o.type="triangle";o.frequency.value=f;
+      const og=ctx.createGain();og.gain.value=v;o.connect(og);og.connect(lp);o.start();
+    });
+    const lfo=ctx.createOscillator();lfo.frequency.value=.06;
+    const lg=ctx.createGain();lg.gain.value=90;lfo.connect(lg);lg.connect(lp.frequency);lfo.start();
+    lp.connect(g);g.connect(master);
+  }
+  const NOTES=[220,261.63,329.63,392,329.63,261.63,246.94,220,196,220,261.63,220];
+  let step=0;
+  function note(freq,t,dur,vol){
+    const o=ctx.createOscillator();o.type="sine";o.frequency.value=freq;
+    const o2=ctx.createOscillator();o2.type="sine";o2.frequency.value=freq*2.001;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+dur*.25);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    const g2=ctx.createGain();g2.gain.value=.18;o2.connect(g2);g2.connect(g);
+    o.connect(g);g.connect(master);o.start(t);o2.start(t);o.stop(t+dur);o2.stop(t+dur);
+  }
+  function startMelody(){
+    const bar=()=>{
+      if(muted)return;
+      const t=ctx.currentTime+.05,f=NOTES[step%NOTES.length];
+      note(f,t,2.6,.055);
+      if(step%4===0)note(f/2,t,3.4,.05);
+      if(step%8===6)note(f*1.5,t+1.2,1.8,.03);
+      step++;
+    };
+    bar();setInterval(bar,1400);
+  }
+  const ok=()=>ctx&&!muted;
+  function tick(){if(!ok())return;const t=ctx.currentTime;
+    const o=ctx.createOscillator();o.type="square";o.frequency.value=1900+Math.random()*500;
+    const g=ctx.createGain();g.gain.setValueAtTime(.028,t);g.gain.exponentialRampToValueAtTime(.0001,t+.03);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.04)}
+  function click(){if(!ok())return;const t=ctx.currentTime;
+    const o=ctx.createOscillator();o.type="sine";o.frequency.setValueAtTime(880,t);
+    o.frequency.exponentialRampToValueAtTime(320,t+.09);
+    const g=ctx.createGain();g.gain.setValueAtTime(.10,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.13)}
+  function whoosh(){if(!ok())return;const t=ctx.currentTime;
+    const len=ctx.sampleRate*.7,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const bp=ctx.createBiquadFilter();bp.type="bandpass";bp.Q.value=1.2;
+    bp.frequency.setValueAtTime(300,t);bp.frequency.exponentialRampToValueAtTime(2400,t+.6);
+    const g=ctx.createGain();g.gain.setValueAtTime(.14,t);g.gain.exponentialRampToValueAtTime(.0001,t+.7);
+    src.connect(bp);bp.connect(g);g.connect(master);src.start(t)}
+  function strike(){if(!ok())return;const t=ctx.currentTime;
+    const o=ctx.createOscillator();o.type="sawtooth";o.frequency.setValueAtTime(160,t);
+    o.frequency.exponentialRampToValueAtTime(38,t+1.1);
+    const g=ctx.createGain();g.gain.setValueAtTime(.16,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.2);
+    const lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=400;
+    o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+1.25)}
+  function boom(){if(!ok())return;const t=ctx.currentTime;      /* brand-reveal hit */
+    const o=ctx.createOscillator();o.type="sine";o.frequency.setValueAtTime(90,t);
+    o.frequency.exponentialRampToValueAtTime(34,t+1.4);
+    const g=ctx.createGain();g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+1.7)}
+  function fadeOut(){if(master&&!muted){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(0,ctx.currentTime,1.2)}}
+  function fadeIn(){if(master&&!muted){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(.5,ctx.currentTime,.15)}}
+  function toggleMute(){muted=!muted;if(master){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.value=muted?0:.5}return muted}
+  return{init,tick,click,whoosh,strike,boom,fadeIn,fadeOut,toggleMute};
+})();
+
+/* ============================================================
+   QUIZ MONTAGE — scripted taps on a replica of the app UI
+   ============================================================ */
+const MONTAGE=[
+ {q:"It's 11:40 PM. They texted \u201cwe need to talk tomorrow.\u201d The phone is face down. What actually happens in you?",
+  o:["I re-read the last ten messages for evidence. Sleep is cancelled.","Tomorrow is tomorrow. I sleep.","I already know what I did wrong."],pick:0},
+ {q:"A relationship gets serious. Month three. You:",
+  o:["Start finding reasons it won't work. Specific ones.","Merge. Their friends, their shows, their routine.","Say what I want, check what they want. Boring. Works."],pick:0},
+ {q:"They haven't replied in three hours. You saw them online. You:",
+  o:["Draft and delete. Draft and delete. Send something casual.","Match the energy.","They're busy. So am I."],pick:0},
+ {q:"When you were a kid and things went wrong at home, you:",
+  o:["Became useful. Useful children are kept.","Became invisible.","Became good. Grades, manners, shine."],pick:1}
+];
+async function quizMontage(){
+  const card=$("adcard"),q=$("adq"),opts=$("adopts"),count=$("adcount"),fill=$("adfill");
+  fill.style.width="0%";
+  for(let i=0;i<MONTAGE.length;i++){
+    const m=MONTAGE[i];
+    count.textContent="Scenario "+(i+1)+" of 32";
+    q.textContent=m.q;
+    opts.innerHTML=m.o.map((t,k)=>'<div class="opt" style="--k:'+k+'">'+t+'</div>').join("");
+    card.classList.remove("qin");void card.offsetWidth;card.classList.add("qin");
+    fill.style.width=((i+1)/MONTAGE.length*100)+"%";
+    AudioEngine.whoosh();
+    await sleep(1700);
+    opts.querySelectorAll(".opt")[m.pick].classList.add("sel");AudioEngine.click();
+    await sleep(850);
+  }
+}
+
+/* ============================================================
+   RADAR — draws itself
+   ============================================================ */
+const AXES=[["O","OPENNESS"],["C","ORDER"],["E","CHARGE"],["A","WARMTH"],["N","VOLTAGE"],["G","GUARD"]];
+const RVALS=[.78,.62,.42,.55,.83,.71];
+function paintRadar(cv,vals,prog){
+  const ctx=cv.getContext("2d"),cx=340,cy=320,R=205,n=AXES.length;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.font="600 23px 'Helvetica Neue',Helvetica,Arial";ctx.textAlign="center";
+  ctx.lineWidth=1.5;
+  for(let r=1;r<=4;r++){ctx.beginPath();
+    for(let i=0;i<=n;i++){const ang=-Math.PI/2+i*(Math.PI*2/n),rad=R*r/4;
+      const x=cx+Math.cos(ang)*rad,y=cy+Math.sin(ang)*rad;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+    ctx.strokeStyle="#3d3d3d";ctx.stroke()}
+  for(let i=0;i<n;i++){const ang=-Math.PI/2+i*(Math.PI*2/n);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ang)*R,cy+Math.sin(ang)*R);
+    ctx.strokeStyle="#2e2e2e";ctx.stroke();
+    ctx.fillStyle="#a1a1a6";
+    ctx.fillText(AXES[i][1],cx+Math.cos(ang)*(R+48),cy+Math.sin(ang)*(R+44)+8)}
+  ctx.beginPath();
+  const pts=[];
+  for(let i=0;i<=n;i++){const idx=i%n,ang=-Math.PI/2+idx*(Math.PI*2/n);
+    const rad=R*(0.08+0.92*vals[idx])*prog;
+    const x=cx+Math.cos(ang)*rad,y=cy+Math.sin(ang)*rad;pts.push([x,y]);i?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+  ctx.closePath();ctx.fillStyle="rgba(255,255,255,.16)";ctx.fill();
+  ctx.strokeStyle="#f5f5f7";ctx.lineWidth=4;ctx.lineJoin="round";ctx.stroke();
+  ctx.fillStyle="#fff";pts.slice(0,n).forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,7*prog,0,7);ctx.fill()});
+}
+async function radarSequence(){
+  const cv=$("radar"),t0=performance.now();
+  paintRadar(cv,RVALS,0);
+  let done=false;
+  await new Promise(res=>{
+    const finish=()=>{if(!done){done=true;paintRadar(cv,RVALS,1);res()}};
+    const safety=setTimeout(finish,2800);
+    (function step(t){
+      if(done)return;
+      const p=Math.min(1,(t-t0)/2400);
+      paintRadar(cv,RVALS,1-Math.pow(1-p,3));
+      if(p<1)requestAnimationFrame(step);else{clearTimeout(safety);finish()}
+    })(t0);
+  });
+}
+
+/* ============================================================
+   THE TIMELINE — three acts
+   ============================================================ */
+async function play(){
+  /* ---- ACT 1 · the hook ---- */
+  await go("s1a",0);
+  await sleep(500);await pop("bub",1500);AudioEngine.click();
+  await say("c1",1700);
+
+  await go("s1b");await sleep(100);AudioEngine.tick();await say("t1",1500);
+  await go("s1c");await sleep(100);AudioEngine.tick();await say("t2",1500);
+  await go("s1d");await sleep(100);AudioEngine.tick();await say("t3",800);await say("t3b",1300);
+
+  await go("s1e");
+  await sleep(200);await say("vo1",800);await say("vo2",1500);
+
+  /* glitch into the app */
+  const st=$("stage");st.classList.add("glitching");AudioEngine.whoosh();
+  await sleep(280);
+  await go("s2a",0);
+  await sleep(320);st.classList.remove("glitching");
+
+  /* ---- ACT 2 · the reading ---- */
+  $("g1").classList.add("in");
+  await say("intro",700);
+  AudioEngine.boom();
+  await say("brand1",500);await say("brand2",900);
+  await pop("brand3",300);
+  await say("brand4",2300);
+
+  await go("s2q");AudioEngine.whoosh();
+  await say("q0",800);await say("q0b",1800);
+
+  await go("s2b");
+  await sleep(300);await quizMontage();
+  await sleep(300);
+
+  await go("s2c",0);
+  AudioEngine.strike();await sleep(250);
+  await say("strikeTitle",700);
+  await pop("strikeCard",2300);
+
+  await go("s2n");AudioEngine.whoosh();
+  ["n1","n2","n3"].forEach(n=>$(n).textContent="0");
+  await pop("st1",150);await countTo($("n1"),32,900);
+  await pop("st2",150);await countTo($("n2"),150,1100);
+  await pop("st3",150);await countTo($("n3"),6,700);
+  await say("oneland",1900);
+
+  await go("s2d");AudioEngine.whoosh();
+  const term=$("term");term.innerHTML="";
+  await say("ttl",300);
+  const lines=["INDEXING 32 RESPONSES","CROSS-REFERENCING SIGNATURES","1 OFF-SCRIPT SIGNATURE FIRED","WEIGHING THE CONTRADICTIONS","TRIANGULATING ATTACHMENT","WALKING 150 CODEX ENTRIES","RENDERING LANDSCAPE"];
+  for(const ln of lines){
+    const d=document.createElement("div");d.className="tl";
+    d.innerHTML='<span class="dim">&gt; </span>'+ln;term.append(d);
+    await sleep(40);d.classList.add("in");AudioEngine.tick();await sleep(380);
+  }
+  await sleep(500);
+
+  await go("s2e");
+  await say("shape",300);
+  await radarSequence();
+  await sleep(700);
+
+  await go("s2f");
+  ["bb1","bb2","bb3"].forEach(b=>{const e=$(b);e.style.transition="none";e.style.width="0%"});
+  $("vnum").textContent="0%";$("codexFlash").textContent="";
+  await pop("stamp1",600);
+  pop("vnum",0);say("vword",0);AudioEngine.click();
+  await countTo($("vnum"),68,1200,"%");
+  await say("vpair",900);
+  await pop("bbw",100);
+  $("bb1").style.transition="width 1.2s cubic-bezier(.25,.8,.3,1)";
+  $("bb2").style.transition="width 1.2s cubic-bezier(.25,.8,.3,1) .25s";
+  $("bb3").style.transition="width 1.2s cubic-bezier(.25,.8,.3,1) .5s";
+  requestAnimationFrame(()=>{$("bb1").style.width="68%";$("bb2").style.width="24%";$("bb3").style.width="8%"});
+  await sleep(1300);
+  await pop("cxl",300);
+  for(const f of ["The father wound.","Anxious — the tide.","Masked autism."]){
+    await swap($("codexFlash"),f);AudioEngine.tick();await sleep(1300);
+  }
+  await sleep(300);
+
+  /* ---- ACT 3 · the landing ---- */
+  await go("s3a");AudioEngine.whoosh();
+  await say("disc1",1300);await say("disc2",3000);
+
+  await go("s3b");
+  $("g2").classList.add("in");AudioEngine.boom();
+  await say("f1",1000);await say("f3",1000);
+  await pop("f4",1200);AudioEngine.click();
+  await sleep(3500);
+  AudioEngine.fadeOut();
+}
+
+/* ============================================================
+   CLOSE + AUTOPLAY — ESC or "Begin the Reading" closes the tab
+   (works because the app opens this page via window.open)
+   ============================================================ */
+async function beginAd(){
+  RUN++;
+  try{AudioEngine.init();AudioEngine.fadeIn()}catch(err){console.warn("audio init failed",err)}
+  $("stage").classList.remove("glitching");
+  document.querySelectorAll(".scene").forEach(s=>s.classList.remove("on","leave"));
+  try{await play()}
+  catch(e){if(e!=="cancel")console.error("timeline stopped:",e)}
+}
+function closeAd(){
+  try{ window.open("","_self"); window.close(); }catch(err){}
+  setTimeout(()=>{ document.title="Safe to close this tab"; },400);
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ e.preventDefault(); closeAd(); }
+});
+$("f4").addEventListener("click",closeAd);
+window.addEventListener("load",()=>{ beginAd(); });
+</script>
+</body>
+</html>
