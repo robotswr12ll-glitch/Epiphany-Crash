@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="MIRROR UNIFIED — a psychoeducational self-knowledge engine. Educational content, never a diagnosis.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='black'/><text x='32' y='45' font-size='38' fill='white' text-anchor='middle' font-family='Georgia' font-style='italic'>M</text></svg>">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MIRROR">
+<link rel="icon" href="https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/favicon.ico">
+<!-- fallback icon if the GitHub favicon.ico is not in place yet -->
+<link rel="alternate icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='black'/><text x='32' y='45' font-size='38' fill='white' text-anchor='middle' font-family='Georgia' font-style='italic'>M</text></svg>">
 <title>MIRROR UNIFIED — A Profiler's Codex</title>
 <style>
 /* ============================================================
@@ -236,14 +243,94 @@ body.dark{ filter:invert(1) hue-rotate(180deg); background:#16161a; }
 .pro-table td{ border-bottom:1px solid var(--hair); padding:8px 6px; line-height:1.55; vertical-align:top; }
 .risk{ border:2px solid var(--ink); border-radius:9px; padding:12px 14px; margin:12px 0; background:#fff; }
 .risk b{ letter-spacing:.2em; font-size:11px; }
+/* ---------- THE READ — typewriter observations, black on black ---------- */
+#read{ position:fixed; inset:0; z-index:110; background:#000; color:#fff; display:none;
+  flex-direction:column; justify-content:center; align-items:center; cursor:pointer;
+  padding:80px 28px; }
+#readCount{ position:absolute; top:56px; left:0; right:0; text-align:center; font-size:10px;
+  letter-spacing:.4em; color:#666; font-family:"Courier New",monospace; text-transform:uppercase; }
+#readWrap{ max-width:560px; width:100%; font-family:"Courier New",monospace; font-size:17px;
+  line-height:1.9; }
+#readCursor{ display:inline-block; width:9px; height:18px; background:#fff; margin-left:3px;
+  vertical-align:-3px; animation:blink 1s steps(1) infinite; }
+@keyframes blink{ 50%{ opacity:0; } }
+#readHint{ position:absolute; bottom:66px; left:0; right:0; text-align:center; font-size:10px;
+  letter-spacing:.35em; color:#555; font-family:"Courier New",monospace;
+  animation:blink 2.4s steps(1) infinite; }
+#readSkip{ position:absolute; top:14px; right:14px; background:none; border:1px solid #444;
+  color:#aaa; font-size:10px; letter-spacing:.25em; padding:6px 12px; cursor:pointer; }
+#readSkip:focus-visible{ outline:2px solid #fff; }
+/* ---------- VIDEO INSIGHTS ---------- */
+.vidbox{ border:1px solid var(--hair); border-radius:11px; overflow:hidden; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.14); margin-bottom:4px; }
+.vid-thumb{ position:relative; width:100%; padding-top:56.25%; cursor:pointer;
+  background:radial-gradient(circle at 50% 42%, #3a3a3a 0%, #0d0d0d 72%); }
+.vid-thumb .vid-play{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:0; height:0; border-top:15px solid transparent; border-bottom:15px solid transparent;
+  border-left:24px solid #fff; }
+.vid-thumb::after{ content:""; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%); width:62px; height:62px;
+  border:1px solid rgba(255,255,255,.4); border-radius:50%; }
+.vid-thumb:active::after{ background:rgba(255,255,255,.12); }
+.vid-frame{ width:100%; aspect-ratio:16/9; border:0; display:block; background:#000; }
+.vid-meta{ padding:12px 14px; }
+.vid-meta b{ display:block; font-size:13px; letter-spacing:.06em; }
+.vid-meta span{ display:block; font-size:11px; color:var(--mid); margin-top:3px; letter-spacing:.04em; }
+/* ---------- ADS — labeled, dismissible, never blocking ---------- */
+.adslot{ position:relative; border:1px dashed #9a9a9a; border-radius:9px; background:#f4f3f0;
+  padding:14px 42px 12px 14px; margin:14px 0; }
+.ad-tag{ font-size:9px; letter-spacing:.35em; color:var(--mid); text-transform:uppercase;
+  margin-bottom:6px; }
+.ad-t{ font-size:13px; font-weight:700; letter-spacing:.08em; }
+.ad-d{ font-size:12px; color:#555; margin-top:4px; line-height:1.6; }
+.ad-fine{ font-size:9px; letter-spacing:.12em; color:#999; margin-top:8px; text-transform:uppercase; }
+.ad-x{ position:absolute; top:6px; right:6px; width:26px; height:26px; background:none;
+  border:1px solid #bbb; border-radius:6px; color:#666; font-size:14px; line-height:1;
+  cursor:pointer; }
+/* ---------- pre-roll: labeled, skippable ---------- */
+#preroll{ position:fixed; inset:0; z-index:115; background:rgba(0,0,0,.93); display:none;
+  align-items:center; justify-content:center; padding:22px; }
+#prerollBox{ position:relative; max-width:420px; width:100%; background:#111; color:#eee;
+  border:1px solid #444; border-radius:12px; padding:26px 18px 18px; }
+#prerollBox .ad-tag{ color:#888; }
+#prerollBox .ad-x{ border-color:#555; color:#aaa; }
+#adCreative .ad-d{ color:#bbb; }
+#skipBtn{ margin:18px auto 0; }
+#skipBtn:disabled{ opacity:.45; cursor:default; }
+/* ---------- WCAG: visible focus ---------- */
+.cell:focus-visible,.lk-opt:focus-visible,.gloss-btn:focus-visible,.link-chip:focus-visible,
+.vid-thumb:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+#read:focus-visible{ outline:none; }
+/* videos must survive dark mode's global invert — invert them back */
+body.dark iframe{ filter:invert(1) hue-rotate(180deg); }
+/* ---------- friendly polish: hovers, gentle motion, warm touches ---------- */
+.gloss-btn{ transition:transform .12s ease, box-shadow .12s ease, filter .12s ease; }
+.cell{ transition:background .15s ease, padding-left .15s ease; }
+.link-chip{ transition:background .12s ease, transform .12s ease; }
+@media (hover:hover){
+  .gloss-btn:hover{ transform:translateY(-1px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 4px 10px rgba(0,0,0,.4); }
+  .gloss-btn.ghost:hover{ box-shadow:inset 0 1px 0 #fff, 0 3px 8px rgba(0,0,0,.22); }
+  .cell:hover{ background:#f0efec; padding-left:18px; }
+  .opt .cell:hover{ background:#f0efec; }
+  .link-chip:hover{ background:#eee; transform:translateY(-1px); }
+  .vid-thumb:hover::after{ background:rgba(255,255,255,.10); }
+  .lk-opt:hover{ background:#f0efec; }
+}
+.welcome-back{ text-align:center; margin:6px auto 4px; max-width:340px;
+  font-family:Georgia,serif; font-style:italic; font-size:13px; color:#555;
+  line-height:1.7; display:none; }
+.welcome-back .link-chip{ font-style:normal; margin-top:8px; }
 /* ---------- print ---------- */
 @media print{
-  .navbar,#crisis,#scan,#safety,.gloss-btn,.nav-back,.nav-dark{ display:none!important; }
+  .navbar,#crisis,#scan,#safety,#read,#preroll,.gloss-btn,.nav-back,.nav-dark,.adslot,.vidbox{ display:none!important; }
   .screen{ display:none; padding:0; }
   .screen.on{ display:block!important; }
   body{ background:#fff; padding-bottom:0; filter:none!important; }
 }
 </style>
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
 <div class="navbar">
@@ -264,8 +351,12 @@ body.dark{ filter:invert(1) hue-rotate(180deg); background:#16161a; }
   <button class="gloss-btn" onclick="startQuiz()">Begin the Reading</button>
   <button class="gloss-btn ghost" onclick="showHub()">The Instruments</button>
   <button class="gloss-btn ghost" onclick="show('scr-codex')">Enter the Codex</button>
-  <div class="fineprint">32 SCENARIOS &nbsp;&middot;&nbsp; 150 ENTRIES &nbsp;&middot;&nbsp; SIX INSTRUMENTS &nbsp;&middot;&nbsp; ONE LANDSCAPE<br>
-  an educated read, never a diagnosis<br>
+  <button class="gloss-btn ghost" onclick="watchAd()">Watch Our Ad</button>
+  <button class="gloss-btn ghost" onclick="showVideos()">Video Insights</button>
+  <div class="welcome-back" id="welcomeBack">Welcome back. Your landscape is on file &mdash; still only on this device, still only yours.<br>
+    <span class="link-chip" onclick="renderVerdict(STORE.v,false)">SEE MY LANDSCAPE</span></div>
+  <div class="fineprint">32 SCENARIOS &nbsp;&middot;&nbsp; 150 ENTRIES &nbsp;&middot;&nbsp; SIX INSTRUMENTS &nbsp;&middot;&nbsp; VIDEO INSIGHTS &nbsp;&middot;&nbsp; ONE LANDSCAPE<br>
+  an educated read, never a diagnosis &mdash; take what fits, leave the rest<br>
   everything stays on this device &mdash; nothing is sent anywhere</div>
 </div>
 
@@ -277,7 +368,7 @@ body.dark{ filter:invert(1) hue-rotate(180deg); background:#16161a; }
   </div>
   <div class="search-hint">Multi-word searches traverse the knowledge graph &mdash; the bar under each result is relationship strength.</div>
   <div id="codexList"></div>
-  <div class="no-results" id="noRes">NOTHING IN THE CODEX ANSWERS TO THAT NAME</div>
+  <div class="no-results" id="noRes">NOTHING IN THE CODEX ANSWERS TO THAT NAME<br><span style="letter-spacing:.04em;text-transform:none;font-style:italic;font-family:Georgia,serif">try another word &mdash; or a pattern, like &quot;numbness childhood anger&quot;</span></div>
 </div>
 
 <!-- ================= ENTRY DETAIL ================= -->
@@ -308,8 +399,34 @@ body.dark{ filter:invert(1) hue-rotate(180deg); background:#16161a; }
   <div id="proBody"></div>
 </div>
 
+<!-- ================= VIDEO INSIGHTS ================= -->
+<div class="screen" id="scr-videos">
+  <div id="vidBody"></div>
+</div>
+
 <!-- fake scan overlay -->
 <div id="scan" aria-hidden="true"><div class="scanline"></div><div class="lines" id="scanLines"></div></div>
+
+<!-- THE READ: pattern observations, typed one at a time -->
+<div id="read" role="dialog" aria-modal="true" aria-label="The Read — pattern observations"
+  tabindex="-1" onclick="advanceRead()" onkeydown="readKey(event)">
+  <button id="readSkip" onclick="event.stopPropagation();skipRead()" aria-label="Skip the read">SKIP</button>
+  <div id="readCount"></div>
+  <div id="readWrap"><span id="readText"></span><span id="readCursor" aria-hidden="true"></span></div>
+  <div id="readHint">TAP TO CONTINUE &nbsp;&middot;&nbsp; ENTER / SPACE WORK TOO</div>
+  <div style="position:absolute;bottom:46px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.15em;color:#8a8a8a">In crisis? Call or text <b style="color:#bbb">988</b> (US) &middot; findahelpline.com</div>
+</div>
+
+<!-- pre-roll: clearly labeled, skippable, never blocks the video -->
+<div id="preroll" role="dialog" aria-modal="true" aria-label="Advertisement">
+  <div id="prerollBox">
+    <div class="ad-tag">ADVERTISEMENT</div>
+    <button class="ad-x" onclick="finishPreroll()" aria-label="Close ad and play video">&times;</button>
+    <div id="adCreative"></div>
+    <div class="ad-fine">Sponsor slot &mdash; clearly labeled, skippable, never blocks content</div>
+    <button id="skipBtn" class="gloss-btn" onclick="finishPreroll()">SKIP IN 3</button>
+  </div>
+</div>
 
 <!-- safety protocol overlay -->
 <div id="safety" role="alertdialog" aria-label="Safety resources"><div class="box" id="safetyBox"></div></div>
@@ -1703,6 +1820,144 @@ dis:"DISORGANIZED — you reach and retreat in the same motion."
 };
 const AXES=[["O","OPENNESS"],["C","ORDER"],["E","CHARGE"],["A","WARMTH"],["N","VOLTAGE"],["G","GUARD"]];
 
+/* ============================================================
+   THE READ — pattern recognition over answers + timing.
+   QTHEMES tags every scenario; buildRead() runs rules that
+   connect non-obvious dots: latency tells, contradictions
+   between scenarios and instruments, repeated moves.
+   Voice contract: second person, no diagnosis — always
+   "this suggests" / "the pattern here is", never "you have".
+   ============================================================ */
+const QTHEMES=[
+["love","control","sleep"],["social"],["praise","work"],["rest","work"],
+["love","closeness"],["social","masking"],["family","father"],["helping","feelings"],
+["rejection","approval"],["meaning","belief"],["love","monitoring","waiting"],["work","control"],
+["achievement","praise"],["love","closeness"],["conflict","peacekeeping"],["social","masking"],
+["criticism","rejection"],["childhood","praise","family"],["rest","solitude"],["envy","comparison"],
+["rules","authority","control"],["praise","receiving"],["childhood","coping","family"],["endings","leaving"],
+["selftalk"],["trust","control"],["seen","identity"],["rejection","endings"],
+["love","belief"],["vulnerability","helping","seen"],["power","control"],["aspiration","meaning"]];
+const THEME_LABEL={love:"love",control:"control",childhood:"childhood",praise:"praise",
+social:"other people",helping:"helping",rejection:"rejection",work:"the work",
+endings:"endings",trust:"trust",seen:"being seen",meaning:"meaning",family:"family"};
+
+function tagLat(th){ /* average ms spent on answered questions carrying a theme */
+  let s=0,n=0;
+  for(const tag in S.tms){
+    const m=tag.match(/^q(\d+)/); if(!m) continue;
+    const qi=parseInt(m[1],10)-1;
+    if(QTHEMES[qi]&&QTHEMES[qi].indexOf(th)!==-1){ s+=S.tms[tag]; n++; }
+  }
+  return n?s/n:0;
+}
+function slowestTheme(){
+  let best=null,bs=0;
+  for(const th in THEME_LABEL){ const v=tagLat(th); if(v>bs){ bs=v; best=th; } }
+  return bs>4200? {th:best,ms:bs} : null;
+}
+function buildRead(){
+  const mods=STORE.modules||{};
+  const p=t=>S.log.indexOf(t)!==-1;
+  const latC=tagLat("control"), latL=tagLat("love"), latSeen=tagLat("seen")||tagLat("identity");
+  let tot=0,n=0; for(const k in S.tms){ tot+=S.tms[k]; n++; }
+  const latAll=n?tot/n:0;
+  const R=[], add=(w,say)=>R.push({w:w,say:say});
+
+  if(latC&&latL&&latC<2600&&latL>latC*1.7) add(10,"You answered quickly on the questions about control. You paused on the ones about being loved. That tells me everything.");
+  if(p("q5a")&&(p("strike-avo0")||p("strike-avo1"))&&(p("q14a")||p("q24b"))) add(10,"You have a pattern of leaving before you can be left. You also have a pattern of choosing people who won’t stay. These are the same pattern.");
+  if((S.w.conditional||0)>=3&&(S.a.perfectionist||0)>=3) add(9,"You call it standards. The data calls it fear.");
+  if(p("q12a")&&(p("q17a")||p("q20d"))) add(9,"You’re not afraid of failure. You’re afraid of being seen trying. The last-minute sprint isn’t a process — the pattern here is an alibi.");
+  if((p("q1a")||p("q1c"))&&mods.A&&mods.A.sl>=2) add(9,"You chose “I sleep fine.” The mood instrument you filled in disagrees. This suggests one of those answers is a performance — and the other is the leak.");
+  const care=["q4d","q8a","q15a","q23a","q29d","q30c"].filter(p).length;
+  if(care>=3) add(9,"In every scenario where someone could be carried, you volunteered. Not one of your answers had anyone carrying you. The pattern here is a one-way bridge you call a personality.");
+  if(p("q1b")&&p("q11a")) add(8,"Silence from people you love reads as a verdict to you. You checked for one twice, in two different costumes. This suggests vigilance dressed as devotion.");
+  if(p("q6a")&&p("q16a")) add(8,"You ran the script, managed your face, and called it socializing. Twice. The performance is fluent. This suggests the invoice arrives later, in private.");
+  if((p("q7a")||p("q7c"))&&p("q13d")) add(8,"His name on the screen still sets your posture. You finished the question about applause by reaching for the one person whose clap counts. The pattern here is an audience that never changed.");
+  if(mods.B&&mods.B.anx>=4&&(p("q11c")||p("q1c"))) add(8,"You answered the scenarios like someone unbothered. Your attachment instrument answered like someone monitoring. This suggests a calm narrator with an anxious author.");
+  if((S.t.avo||0)>=5&&((S.c.limerence||0)>=2||(S.t.anx||0)>=3)) add(8,"You keep people at arm’s length and ache for the ones who stay there. The distance isn’t the problem. The pattern here is the arrangement.");
+  if((S.t.dis||0)>=4) add(8,"You reached for closeness and flinched from it in the same set of answers. This suggests comfort and alarm were installed by the same hands.");
+  if(p("q26a")&&p("q3c")) add(7,"You extend trust in installments and call it wisdom. The pattern here is a first loan that was never repaid.");
+  if((S.a.nihilist||0)>=3&&(p("q19a")||p("q31d")||p("q32a"))) add(7,"Your cynicism is load-bearing, but it leaks. You chose the sincere option and underlined the void in the same sitting. Both were honest.");
+  if(p("q20d")) add(7,"When someone else won the thing you wanted, you went quiet and then audited yourself for it. The envy isn’t the wound. The pattern here is the shame about the envy.");
+  if(p("q24b")) add(7,"You don’t end things. You become gradually less findable until the ending happens around you. The pattern here is kindness and avoidance sharing a bed.");
+  if(p("q27c")&&mods.D&&mods.D.score>=20) add(8,"You told the scenarios “I’m fine.” You told the stress instrument the truth. The pattern here is deciding which audience gets which answer.");
+  if(latSeen>5200) add(7,"The question about what people get wrong about you — you sat with it longer than almost anything else. Being misread costs you more than you let on.");
+  if(latAll&&latAll<1800) add(6,"You didn’t read the options. You recognized them. That speed is its own confession.");
+
+  /* fallbacks: fill to a minimum of three, then the closer */
+  const FB=[];
+  const st=slowestTheme();
+  if(st&&THEME_LABEL[st.th]) FB.push("You lingered longest on the questions about "+THEME_LABEL[st.th]+". The pause is data too — the pattern here is that hesitation marks the real address.");
+  if((S.x.G||0)>2&&(S.x.G||0)>(S.x.A||0)) FB.push("Your guard runs higher than your warmth. People meet the perimeter first and the person second. This suggests the order was decided before you could vote.");
+  if((S.x.E||0)<=-2) FB.push("The scenarios kept offering you rooms full of people, and you kept choosing the quiet corner. That’s not absence — the pattern here is that you keep the good stuff inland.");
+  FB.push("Every contradiction in your answers points the same direction. Contradictions are data — and yours are loud.");
+  FB.push("You were more consistent than you think. The pattern here is not chaos — it’s a system, built early, still running.");
+
+  R.sort((a,b)=>b.w-a.w);
+  const picked=R.slice(0,5).map(r=>r.say);
+  let fi=0;
+  while(picked.length<3&&fi<FB.length){ picked.push(FB[fi++]); }
+  picked.push("None of this is a diagnosis. It’s a mirror with a memory. If any of it rang true, that resonance is the real result — take it to a professional, not to a label.");
+  return picked;
+}
+
+/* ---------- the typewriter player: black screen, white text, blinking cursor ---------- */
+let READI=0, READTIMER=null, READTYPING=false, READMODE="post";
+function startRead(){
+  READI=0; READMODE="post";
+  const el=document.getElementById("read");
+  el.style.display="flex";
+  el.focus();
+  typeObservation();
+}
+function replayRead(){ /* from the landscape: re-run without retaking the quiz */
+  if(!LASTV||!LASTV.readings||!LASTV.readings.length) return;
+  if(!S) S={log:[],a:{},t:{},w:{},c:{},x:{},fired:[],tms:{},readings:LASTV.readings};
+  S.readings=LASTV.readings;
+  READI=0; READMODE="replay";
+  const el=document.getElementById("read");
+  el.style.display="flex";
+  el.focus();
+  typeObservation();
+}
+function typeObservation(){
+  const full=S.readings[READI];
+  document.getElementById("readCount").textContent=
+    READI<S.readings.length-1 ? "OBSERVATION "+(READI+1)+" OF "+(S.readings.length-1) : "THE READ — CLOSING";
+  const txt=document.getElementById("readText");
+  txt.textContent="";
+  if(reducedMotion){ txt.textContent=full; READTYPING=false; return; }
+  READTYPING=true;
+  let i=0;
+  clearInterval(READTIMER);
+  READTIMER=setInterval(()=>{
+    i++;
+    txt.textContent=full.slice(0,i);
+    if(i>=full.length){ clearInterval(READTIMER); READTYPING=false; }
+  },26);
+}
+function finishRead(){
+  document.getElementById("read").style.display="none";
+  if(READMODE==="replay"&&LASTV){ renderVerdict(LASTV,LASTSHARED); }
+  else verdict();
+}
+function advanceRead(){
+  if(READTYPING){ /* first tap: complete the line instantly */
+    clearInterval(READTIMER); READTYPING=false;
+    document.getElementById("readText").textContent=S.readings[READI];
+    return;
+  }
+  READI++;
+  if(READI>=S.readings.length){ finishRead(); return; }
+  typeObservation();
+}
+function skipRead(){ clearInterval(READTIMER); READTYPING=false; finishRead(); }
+function readKey(ev){
+  if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); advanceRead(); }
+  if(ev.key==="Escape"){ ev.preventDefault(); skipRead(); }
+}
+
+
 /* ---------- THE INSTRUMENTS ----------
    Validated screening tools with real items and standard scoring.
    These are screens, not diagnoses — every result page says so. */
@@ -1849,7 +2104,8 @@ try{ if(localStorage.getItem("mirror_dark")==="1"){ document.body.classList.add(
    NAVIGATION — simple screen switcher with an iOS-style back
    ============================================================ */
 const TITLES={"scr-home":"MIRROR","scr-codex":"THE CODEX","scr-entry":"ENTRY",
-"scr-hub":"THE INSTRUMENTS","scr-quiz":"THE READING","scr-verdict":"PATTERN LANDSCAPE","scr-pro":"PROFESSIONAL SUMMARY"};
+"scr-hub":"THE INSTRUMENTS","scr-quiz":"THE READING","scr-verdict":"PATTERN LANDSCAPE",
+"scr-pro":"PROFESSIONAL SUMMARY","scr-videos":"VIDEO INSIGHTS"};
 let historyStack=["scr-home"];
 function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
@@ -1864,6 +2120,149 @@ function goBack(){
   historyStack.pop();
   const prev=historyStack.pop()||"scr-home";
   show(prev);
+}
+
+
+/* ============================================================
+   VIDEO INSIGHTS — curated educational video on entry pages.
+   Click-to-play (no autoplay, no tracking until tapped),
+   hosted on youtube-nocookie. A labeled, skippable sponsor
+   slot rides beside it — never blocking content.
+   Kinds: EXPERT explainers · DEMO intervention demos ·
+   NARRATIVE personal narratives. Offline: everything except
+   the streams keeps working.
+   ============================================================ */
+const VIDEOS=[
+{id:"brene",kind:"EXPERT",t:"The Power of Vulnerability",c:"Brené Brown · TEDxHouston",yt:"iCvmsMzlF7o"},
+{id:"wald",kind:"EXPERT",t:"What Makes a Good Life? Lessons from the Longest Study on Happiness",c:"Robert Waldinger · TED",yt:"8KkKuTCFvzI"},
+{id:"walker",kind:"EXPERT",t:"Sleep Is Your Superpower",c:"Matt Walker · TED",yt:"5MuIMqhT8DM"},
+{id:"flow",kind:"EXPERT",t:"Flow, the Secret to Happiness",c:"Mihaly Csikszentmihalyi · TED",yt:"fXIeFJCqsPs"},
+{id:"bipolar",kind:"EXPERT",t:"What Is Bipolar Disorder?",c:"Helen M. Farrell · TED-Ed",yt:"RrWBhVlD1H8"},
+{id:"ocd",kind:"EXPERT",t:"Debunking the Myths of OCD",c:"Natascha M. Santos · TED-Ed",yt:"DhlRgwdDc-E"},
+{id:"adhd",kind:"EXPERT",t:"What Is ADHD?",c:"How to ADHD",yt:"xMWtGozn5jU"},
+{id:"attach",kind:"EXPERT",t:"The Attachment Theory: How Childhood Affects Life",c:"Sprouts · explainer",yt:"WjOowWxOXCg"},
+{id:"actbus",kind:"DEMO",t:"Passengers on the Bus — an ACT Metaphor",c:"ACBS · animated exercise",yt:"Z29ptSuoWRc"},
+{id:"defusion",kind:"DEMO",t:"How to Stop Fighting Intrusive Thoughts",c:"Therapy in a Nutshell · ACT demo",yt:"IHOieCU4WQs"},
+{id:"emdr",kind:"DEMO",t:"What Is EMDR Therapy?",c:"ADAA · explainer",yt:"dsh3b3pQBrI"},
+{id:"solomon",kind:"NARRATIVE",t:"Depression, the Secret We Share",c:"Andrew Solomon · TEDxMet",yt:"-eBUcBfkVCo"},
+{id:"blackdog",kind:"NARRATIVE",t:"I Had a Black Dog, His Name Was Depression",c:"Matthew Johnstone · WHO",yt:"XiCrniLQGYc"},
+{id:"grief",kind:"NARRATIVE",t:"We Don’t “Move On” From Grief. We Move Forward With It.",c:"Nora McInerny · TEDWomen",yt:"khkJkR-ipfw"},
+{id:"adhdtedx",kind:"NARRATIVE",t:"Failing at Normal: An ADHD Success Story",c:"Jessica McCabe · TEDx",yt:"JiwZQNYIGQI"}
+];
+/* entry -> video; category fallback below */
+const VMAP={
+mdd:"solomon",pdd:"solomon",languishing:"blackdog",
+gad:"actbus",ocd:"ocd",healthanx:"defusion",
+bipolar:"bipolar",cyclothymic:"bipolar",
+adhd:"adhd",rsd:"adhdtedx",
+sleepdisorder:"walker",burnout:"walker",
+flow:"flow",flourishing:"wald",
+anxious:"attach",avoidant:"attach",disorganized:"attach",secure:"wald",
+anxavo:"attach",preocc:"attach",dismiss:"attach",earned:"wald",
+attachcouples:"wald",pursuer:"wald",lovelang:"wald",repairstyles:"wald",
+griefstages:"grief",griefwound:"grief",ptg:"grief",cutoff:"grief",
+ptsd:"emdr",cptsd:"emdr",acutestress:"emdr",
+codependent:"brene",mother:"brene",boundaries:"brene",
+anorexia:"blackdog",bulimia:"blackdog",binge:"blackdog"
+};
+const CATVID={"ARCHETYPES":"wald","ATTACHMENT STYLES":"attach","WOUNDS":"brene",
+"CLINICAL PATTERNS":"blackdog","RELATIONAL DYNAMICS":"wald","STATES & EXPERIENCES":"flow"};
+
+/* ---------- house ads: labeled placeholders for a real sponsor tag ---------- */
+const ADS=[
+{t:"MIRROR FIELD NOTES",d:"The print codex. One hundred and fifty patterns, no batteries required. This rectangle pays for the hosting."},
+{t:"THIS SPACE FOR RENT",d:"Sponsors get a labeled rectangle. Never your answers — those never leave this device."},
+{t:"A QUIET ADVERTISEMENT",d:"One small, skippable slot keeps a free psychoeducational tool free. That is the whole transaction."}
+];
+let adIdx=-1;
+function nextAd(){ adIdx=(adIdx+1)%ADS.length; return ADS[adIdx]; }
+function adSlotHTML(){
+  const a=nextAd();
+  return '<div class="adslot" role="complementary" aria-label="Advertisement">'
+   +'<div class="ad-tag">ADVERTISEMENT</div>'
+   +'<button class="ad-x" onclick="this.parentNode.style.display=\'none\'" aria-label="Dismiss this advertisement">&times;</button>'
+   +'<div class="ad-t">'+a.t+'</div><div class="ad-d">'+a.d+'</div>'
+   +'<div class="ad-fine">Clearly labeled &middot; skippable &middot; never blocks content</div></div>';
+}
+
+/* ---------- entry-page video section ---------- */
+function videoSectionHTML(e){
+  const vid=VIDEOS.find(v=>v.id===(VMAP[e.id]||CATVID[e.cat]));
+  if(!vid) return "";
+  return '<div class="section"><h3>VIDEO INSIGHTS</h3>'
+   +'<div class="vidbox">'
+   +'<div class="vid-thumb" role="button" tabindex="0" aria-label="Play video: '+vid.t+'" '
+   +'onclick="playVideo(this,\''+vid.id+'\')" '
+   +'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();playVideo(this,\''+vid.id+'\')}">'
+   +'<div class="vid-play"></div></div>'
+   +'<div class="vid-meta"><b>'+vid.t+'</b><span>'+vid.c+' &middot; educational &middot; streams from YouTube (needs internet)</span></div>'
+   +'</div></div>'
+   +adSlotHTML();
+}
+
+/* ---------- click-to-play with a skippable, labeled pre-roll ---------- */
+let pendingVid=null, PR_IV=null;
+
+/* ---------- watch our ad: opens the keynote-style ad page ---------- */
+function watchAd(){ window.open("ad.html","_blank"); }
+
+function playVideo(el,id){
+  pendingVid={el:el,id:id};
+  document.getElementById("adCreative").innerHTML=
+    '<div class="ad-t" style="font-size:16px">'+nextAd().t+'</div>'
+    +'<div class="ad-d" style="margin-top:8px">'+ADS[adIdx].d+'</div>';
+  const btn=document.getElementById("skipBtn");
+  btn.disabled=true; btn.textContent="SKIP IN 3";
+  document.getElementById("preroll").style.display="flex";
+  let n=3;
+  clearInterval(PR_IV);
+  PR_IV=setInterval(()=>{
+    n--;
+    if(n<=0){ clearInterval(PR_IV); btn.disabled=false; btn.textContent="SKIP AD \u25B8"; }
+    else btn.textContent="SKIP IN "+n;
+  },1000);
+}
+function finishPreroll(){
+  clearInterval(PR_IV);
+  document.getElementById("preroll").style.display="none";
+  if(!pendingVid) return;
+  const vid=VIDEOS.find(v=>v.id===pendingVid.id);
+  pendingVid.el.outerHTML='<iframe class="vid-frame" title="'+vid.t+'" loading="lazy" '
+    +'src="https://www.youtube-nocookie.com/embed/'+vid.yt+'?rel=0" '
+    +'allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  pendingVid=null;
+}
+
+/* ---------- the Video Insights index screen ---------- */
+function showVideos(){
+  const kinds=[["EXPERT","EXPERT EXPLAINERS"],["DEMO","INTERVENTION DEMOS"],["NARRATIVE","PERSONAL NARRATIVES"]];
+  let h='<div class="mod-note">Curated educational video &mdash; expert explainers, intervention demos, personal narratives.<br>'
+    +'Click-to-play, streamed on demand, never auto-playing. The labeled squares keep the lights on.</div>';
+  h+='<div id="vidStage"></div>';
+  kinds.forEach(k=>{
+    h+='<div class="group-title">'+k[1]+'</div><div class="group">';
+    VIDEOS.filter(v=>v.kind===k[0]).forEach(v=>{
+      h+='<div class="cell" onclick="stageVideo(\''+v.id+'\')">' 
+        +'<div class="nm">'+v.t+'</div><div class="ep">'+v.c+'</div></div>';
+    });
+    h+='</div>';
+  });
+  h+=adSlotHTML();
+  h+='<div class="section"><h3>OFFLINE NOTE</h3><p style="font-size:13px;line-height:1.8">'
+    +'Videos stream from YouTube and need internet. Everything else in MIRROR &mdash; the codex, the reading, the instruments &mdash; works fully offline.</p></div>';
+  document.getElementById("vidBody").innerHTML=h;
+  show("scr-videos");
+}
+function stageVideo(id){
+  const vid=VIDEOS.find(v=>v.id===id); if(!vid) return;
+  document.getElementById("vidStage").innerHTML=
+    '<div class="vidbox">'
+    +'<div class="vid-thumb" role="button" tabindex="0" aria-label="Play video: '+vid.t+'" '
+    +'onclick="playVideo(this,\''+id+'\')" '
+    +'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();playVideo(this,\''+id+'\')}">'
+    +'<div class="vid-play"></div></div>'
+    +'<div class="vid-meta"><b>'+vid.t+'</b><span>'+vid.c+'</span></div></div>';
+  window.scrollTo(0,0);
 }
 
 /* ============================================================
@@ -1955,6 +2354,7 @@ function openEntry(id){
     +e.rw.map((s,i)=>"<li><b>"+rwLabels[i]+"</b> — "+s.split(": ")[1]+"</li>").join("")+"</ul></div>";
   h+='<div class="section"><h3>THE BLIND SPOT</h3><p>'+e.bl+"</p></div>";
   h+='<div class="section"><h3>ORIGIN</h3><p>'+e.or+"</p></div>";
+  h+=videoSectionHTML(e);
   if(e.co) h+='<div class="section"><h3>FREQUENTLY TRAVELS WITH</h3><div>'+chips(e.co,ENTRIES)+"</div></div>";
   if(e.dd) h+='<div class="section"><h3>OFTEN CONFUSED WITH</h3><div>'+chips(e.dd,ENTRIES)+"</div></div>";
   if(e.tx) h+='<div class="section"><h3>EVIDENCE-BASED INTERVENTIONS</h3><p>'+e.tx+"</p></div>";
@@ -1972,7 +2372,7 @@ function openEntry(id){
    ============================================================ */
 let S=null; // quiz state
 function startQuiz(){
-  S={qi:0,log:[],a:{},t:{},w:{},c:{},x:{},fired:[],pending:null};
+  S={qi:0,log:[],a:{},t:{},w:{},c:{},x:{},fired:[],pending:null,tms:{},q0:0,readings:null};
   show("scr-quiz");
   renderQ();
 }
@@ -2006,12 +2406,14 @@ function renderQ(){
     opts.appendChild(d);
   });
   card.style.animation="none"; void card.offsetWidth; card.style.animation="";
+  S.q0=performance.now(); // The Read is watching the clock, not just the choice
 }
 function answer(qobj,score,optIdx){
   let tag;
   if(qobj.id){ tag="strike-"+qobj.id+optIdx; }
   else{ tag="q"+(S.qi+1)+String.fromCharCode(97+optIdx); S.qi++; }
   S.log.push(tag);
+  S.tms[tag]=Math.round(performance.now()-(S.q0||performance.now()));
   apply(S.a,score.a); apply(S.t,score.t); apply(S.w,score.w);
   apply(S.c,score.c); apply(S.x,score.x);
   if(!S.pending){
@@ -2043,6 +2445,7 @@ function runScan(){
     "TRIANGULATING ATTACHMENT PATTERN...",
     modCount? "FOLDING IN "+modCount+" INSTRUMENT"+(modCount>1?"S":"")+"...":"NO INSTRUMENTS ON FILE. WORKING WITH BEHAVIOR ALONE...",
     "WALKING THE KNOWLEDGE GRAPH — 150 ENTRIES...",
+    "DRAFTING OBSERVATIONS FROM TIMING + CONTRADICTIONS...",
     "RENDERING LANDSCAPE."];
   lines.innerHTML="";
   let i=0;
@@ -2050,7 +2453,7 @@ function runScan(){
     lines.innerHTML+="&gt; "+steps[i]+"<br>";
     i++;
     if(i>=steps.length){ clearInterval(iv);
-      setTimeout(()=>{ el.style.display="none"; verdict(); },600); }
+      setTimeout(()=>{ el.style.display="none"; S.readings=buildRead(); startRead(); },600); }
   },480);
 }
 
@@ -2082,11 +2485,14 @@ function computeVerdict(){
 
 function verdict(){
   const V=computeVerdict();
+  V.readings=(S&&S.readings)||[];
   STORE.v=V; saveStore(STORE);
   renderVerdict(V,false);
 }
 
+let LASTV=null, LASTSHARED=false;
 function renderVerdict(V,shared){
+  LASTV=V; LASTSHARED=shared;
   const e0=ENTRIES.find(x=>x.id===V.a[0][0]);
   const e1=V.a[1]?ENTRIES.find(x=>x.id===V.a[1][0]):null;
   const e2=V.a[2]?ENTRIES.find(x=>x.id===V.a[2][0]):null;
@@ -2137,6 +2543,7 @@ function renderVerdict(V,shared){
   h+='<div class="disclaimer">This is an educated read, not a diagnosis. If it rings true, that is data — take it to a professional, not to a label.</div>';
   h+='<div class="stat-row">'+(V.answers||32)+" ANSWERS LOGGED · "+(V.strikes||0)+" SIGNATURES FIRED · CONFIDENCE "+V.cf+"</div>";
   if(!shared){
+    if(V.readings&&V.readings.length) h+='<button class="gloss-btn" onclick="replayRead()">Replay The Read</button>';
     h+='<button class="gloss-btn" onclick="showPro()">Professional Summary</button>'
       +'<button class="gloss-btn ghost" onclick="copyShare()">Copy Shareable Link</button>'
       +'<button class="gloss-btn ghost" onclick="startQuiz()">Read Me Again</button>'
@@ -2309,7 +2716,7 @@ function scoreModule(mod,a){
     const phq=a.slice(0,9).reduce((s,v)=>s+v,0);
     const gad=a.slice(9,16).reduce((s,v)=>s+v,0);
     const pb=bandPHQ(phq), gb=bandGAD(gad);
-    return {title:"PHQ-9 + GAD-7", phq:phq, gad:gad, phqBand:pb, gadBand:gb, item9:a[8],
+    return {title:"PHQ-9 + GAD-7", phq:phq, gad:gad, phqBand:pb, gadBand:gb, item9:a[8], sl:a[2], en:a[3],
       summary:"PHQ-9 "+phq+"/27 ("+pb.toLowerCase()+") · GAD-7 "+gad+"/21 ("+gb.toLowerCase()+")"};
   }
   if(mod.id==="B"){
@@ -2446,6 +2853,11 @@ function showPro(){
       +'<li style="font-size:13px">What would you want someone to understand about you that no instrument asks?</li>'
       +'</ul></div>';
   }
+  if(V&&V.readings&&V.readings.length){
+    h+='<div class="section"><h3>BEHAVIORAL OBSERVATIONS (TIMING + CONTRADICTION ANALYSIS)</h3><ul>'
+      +V.readings.map(r=>'<li style="font-size:13px">'+r+'</li>').join("")+'</ul>'
+      +'<p style="font-size:11px;color:#777;margin-top:6px">Generated client-side from answer latency and answer-pattern contradictions. Hypothesis fuel only — not assessment data.</p></div>';
+  }
   h+='<div class="disclaimer">This summary organizes self-reported screening data for a qualified professional. It does not diagnose, and no single score should drive care decisions.</div>';
   h+='<button class="gloss-btn" onclick="exportPDF()">Export PDF</button>'
     +'<button class="gloss-btn ghost" onclick="window.print()">Print</button>'
@@ -2479,9 +2891,27 @@ function exportPDF(){
 }
 
 /* ============================================================
+   PWA — the manifest is generated in-page so this single file
+   installs standalone. For FULL offline caching on GitHub Pages,
+   save the sw.js recipe (in the HTML comment at the bottom of
+   this file) next to index.html — registration is attempted
+   silently and simply does nothing until the file exists.
+   ============================================================ */
+try{
+  const man={name:"MIRROR UNIFIED",short_name:"MIRROR",display:"standalone",
+    background_color:"#0a0a0a",theme_color:"#0a0a0a",
+    start_url:location.pathname||".",icons:[]};
+  const ml=document.createElement("link"); ml.rel="manifest";
+  ml.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}));
+  document.head.appendChild(ml);
+}catch(e){}
+if("serviceWorker" in navigator){ try{ navigator.serviceWorker.register("sw.js").catch(function(){}); }catch(e){} }
+
+/* ============================================================
    BOOT — render codex, restore dark mode, open shared verdicts
    ============================================================ */
 renderCodex();
+try{ if(STORE.v && !/[?&]v=/.test(location.search)) document.getElementById("welcomeBack").style.display="block"; }catch(e){}
 try{
   const m=location.search.match(/[?&]v=([^&]+)/);
   if(m){
@@ -2490,5 +2920,26 @@ try{
   }
 }catch(e){}
 </script>
+
+<!-- ============================================================
+PWA OFFLINE: to make MIRROR fully offline on GitHub Pages, save
+the following as "sw.js" in the same folder as this file:
+
+const C="mirror-v3";
+self.addEventListener("install",e=>{e.waitUntil(
+  caches.open(C).then(c=>c.addAll(["./"])).then(()=>self.skipWaiting()))});
+self.addEventListener("activate",e=>{e.waitUntil(self.clients.claim())});
+self.addEventListener("fetch",e=>{
+  if(e.request.method!=="GET")return;
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{
+    const cl=n.clone();
+    if(n.ok)caches.open(C).then(c=>c.put(e.request,cl));
+    return n;
+  }).catch(()=>caches.match("./"))));
+});
+
+(The app already registers sw.js automatically it just needs the
+file to exist. Videos always stream online; everything else caches.)
+============================================================ -->
 </body>
 </html>
