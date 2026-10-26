@@ -13,6 +13,9 @@
 <!-- fallback icon if the GitHub favicon.ico is not in place yet -->
 <link rel="alternate icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='black'/><text x='32' y='45' font-size='38' fill='white' text-anchor='middle' font-family='Georgia' font-style='italic'>M</text></svg>">
 <title>MIRROR UNIFIED — A Profiler's Codex</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
 /* ============================================================
    MIRROR UNIFIED — monochrome editorial codex, iOS-6 gloss.
@@ -451,6 +454,17 @@ body.dark iframe{ filter:invert(1) hue-rotate(180deg); }
    Reference entries (added in UNIFIED): n ep es sp bl or lk kw
    Clinical entries add: co (travels with) dd (confused with)
    tx (interventions) sc (screening) and, where established, nb / cu */
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCV2c7dJ2ZZuS0s6ymuK0A6lrp3y7-Slxo",
+  authDomain: "mirror-unified.firebaseapp.com",
+  databaseURL: "https://mirror-unified-default-rtdb.firebaseio.com",
+  projectId: "mirror-unified",
+  storageBucket: "mirror-unified.firebasestorage.app",
+  messagingSenderId: "772755703982",
+  appId: "1:772755703982:web:81241eb43167426978853f",
+  measurementId: "G-QJFTJ9ZMG5"
+};
 const ENTRIES=[
 {id:"strategist",cat:"ARCHETYPES",n:"THE STRATEGIST",ep:"Everyone else is playing checkers. They are playing the person across from them.",
 es:"Life processed as a board: every room has incentives, every person has a price or a pattern, and the first one to feel something loses the thread. Detachment is the method; control is the goal.",
@@ -2487,6 +2501,15 @@ function verdict(){
   const V=computeVerdict();
   V.readings=(S&&S.readings)||[];
   STORE.v=V; saveStore(STORE);
+  
+  // Save to Firebase (anonymous)
+  db.ref('results').push({
+    timestamp: new Date().toISOString(),
+    verdict: V,
+    readings: S.readings,
+    userAgent: navigator.userAgent
+  });
+  
   renderVerdict(V,false);
 }
 
