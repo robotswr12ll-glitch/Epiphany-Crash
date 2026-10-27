@@ -13,6 +13,33 @@
 <!-- fallback icon if the GitHub favicon.ico is not in place yet -->
 <link rel="alternate icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='black'/><text x='32' y='45' font-size='38' fill='white' text-anchor='middle' font-family='Georgia' font-style='italic'>M</text></svg>">
 <title>MIRROR UNIFIED — A Profiler's Codex</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCV2c7dJ2ZZuS0s6ymuK0A6lrp3y7-Slxo",
+    authDomain: "mirror-unified.firebaseapp.com",
+    databaseURL: "https://mirror-unified-default-rtdb.firebaseio.com",
+    projectId: "mirror-unified",
+    storageBucket: "mirror-unified.firebasestorage.app",
+    messagingSenderId: "772755703982",
+    appId: "1:772755703982:web:81241eb43167426978853f",
+    measurementId: "G-QJFTJ9ZMG5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.saveToFirebase = async function(data) {
+    try {
+      await addDoc(collection(db, "respondents"), data);
+      console.log("Saved to Firebase!");
+    } catch (e) {
+      console.error("Error saving:", e);
+    }
+  };
+</script>
 <style>
 /* ============================================================
    MIRROR UNIFIED — monochrome editorial codex, iOS-6 gloss.
@@ -433,6 +460,18 @@ body.dark iframe{ filter:invert(1) hue-rotate(180deg); }
 
 <!-- crisis strip: on every screen, always -->
 <div id="crisis">In crisis? <b>Call or text 988</b> (US) &middot; Text <b>HOME</b> to <b>741741</b> &middot; <a href="https://findahelpline.com" target="_blank" rel="noopener">International lines</a></div>
+
+<!-- NAME INPUT POPUP -->
+<div id="nameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:130;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--paper);border:1px solid var(--hair);border-radius:12px;padding:30px 24px;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.5);text-align:center;">
+    <div style="font-size:10px;letter-spacing:.3em;color:var(--mid);text-transform:uppercase;margin-bottom:8px;">Before We Begin</div>
+    <div style="font-size:20px;font-weight:800;letter-spacing:.1em;margin-bottom:12px;">WHO IS TAKING THIS?</div>
+    <div style="font-family:Georgia,serif;font-style:italic;font-size:13px;color:#555;line-height:1.7;margin-bottom:18px;">Enter your name, or stay anonymous.<br>Either way, the mirror works.</div>
+    <input type="text" id="nameInput" placeholder="Your name (or leave blank)" style="width:100%;padding:12px 14px;font-size:14px;border:1px solid #b3b1ac;border-radius:8px;background:#f4f3f0;margin-bottom:14px;font-family:inherit;box-shadow:inset 0 2px 4px rgba(0,0,0,.08);">
+    <button class="gloss-btn" onclick="submitName()" style="margin:0 auto 10px;">Begin the Reading</button>
+    <button class="gloss-btn ghost" onclick="submitAnonymous()" style="margin:0 auto;">Stay Anonymous</button>
+  </div>
+</div>
 
 <script>
 
@@ -2371,11 +2410,48 @@ function openEntry(id){
    THE QUIZ — engine, pattern log, off-script interrupter
    ============================================================ */
 let S=null; // quiz state
+let pendingQuizStart = false;
+
 function startQuiz(){
-  S={qi:0,log:[],a:{},t:{},w:{},c:{},x:{},fired:[],pending:null,tms:{},q0:0,readings:null};
+  document.getElementById("nameModal").style.display = "flex";
+  document.getElementById("nameInput").value = "";
+  setTimeout(() => document.getElementById("nameInput").focus(), 100);
+}
+
+function submitName(){
+  const name = document.getElementById("nameInput").value.trim();
+  closeNameModal();
+  beginQuizWithName(name || "Anonymous");
+}
+
+function submitAnonymous(){
+  closeNameModal();
+  beginQuizWithName("Anonymous");
+}
+
+function closeNameModal(){
+  document.getElementById("nameModal").style.display = "none";
+}
+
+function beginQuizWithName(userName){
+  S={qi:0,log:[],a:{},t:{},w:{},c:{},x:{},fired:[],pending:null,tms:{},q0:0,readings:null,userName:userName};
   show("scr-quiz");
   renderQ();
 }
+
+// Allow Enter key to submit name
+document.addEventListener("DOMContentLoaded", function(){
+  const nameInput = document.getElementById("nameInput");
+  if(nameInput){
+    nameInput.addEventListener("keydown", function(e){
+      if(e.key === "Enter"){
+        e.preventDefault();
+        submitName();
+      }
+    });
+  }
+});
+
 function renderQ(){
   const strike=S.pending;
   const total=QUESTIONS.length;
@@ -2487,6 +2563,29 @@ function verdict(){
   const V=computeVerdict();
   V.readings=(S&&S.readings)||[];
   STORE.v=V; saveStore(STORE);
+  
+  // SAVE TO FIREBASE
+  if(S && S.userName){
+    const firebaseData = {
+      name: S.userName,
+      createdAt: new Date().toISOString(),
+      archetypes: V.a.map(([id, pct]) => {
+        const entry = ENTRIES.find(e => e.id === id);
+        return { name: entry ? entry.n : id, pct: pct };
+      }),
+      attachment: V.t,
+      instruments: STORE.modules || {},
+      flags: [...(V.fc||[]), ...(V.fw||[])],
+      axes: V.x || {},
+      readings: V.readings || [],
+      timing: {
+        medianMs: Math.round(Object.values(S.tms||{}).reduce((a,b)=>a+b,0) / Object.keys(S.tms||{}).length || 0),
+        variance: "low"
+      }
+    };
+    window.saveToFirebase(firebaseData);
+  }
+  
   renderVerdict(V,false);
 }
 
