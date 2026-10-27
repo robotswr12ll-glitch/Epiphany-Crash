@@ -318,14 +318,16 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
 import { getFirestore, collection, query, orderBy, onSnapshot, doc, deleteDoc }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ---- FIREBASE CONFIG: replace with your project's values ---------- */
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCV2c7dJ2ZZuS0s6ymuK0A6lrp3y7-Slxo",
+  authDomain: "mirror-unified.firebaseapp.com",
+  databaseURL: "https://mirror-unified-default-rtdb.firebaseio.com",
+  projectId: "mirror-unified",
+  storageBucket: "mirror-unified.firebasestorage.app",
+  messagingSenderId: "772755703982",
+  appId: "1:772755703982:web:81241eb43167426978853f",
+  measurementId: "G-QJFTJ9ZMG5"
 };
 
 const AXES = ["Structural","Emotive","Agency","Attachment","Temporal","Disclosure"];
