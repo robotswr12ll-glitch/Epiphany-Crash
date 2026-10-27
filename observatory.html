@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIRROR — OBSERVATORY</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --ink:#111111;
+  --paper:#fdfdfb;
+  --hairline:#c9c7c2;
+  --mid:#777777;
+  --severe:#8b0000;
+  --radius:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html.dark{filter:invert(1) hue-rotate(180deg);}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:13px;
+  min-height:100vh;
+}
+::selection{background:var(--ink);color:var(--paper);}
+
+.gloss{
+  font-family:inherit;
+  font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);
+  padding:7px 16px;
+  border:1px solid #9a9a9a;
+  border-radius:var(--radius);
+  background:linear-gradient(180deg,#ffffff 0%,#e8e8e6 45%,#d6d4d0 50%,#c9c7c2 100%);
+  box-shadow:0 1px 3px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.9);
+  cursor:pointer;
+}
+.gloss:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25);}
+.gloss.danger{border-color:#7a0000;color:#8b0000;}
+.gloss.toggled{box-shadow:inset 0 2px 5px rgba(0,0,0,.3);}
+
+header{
+  display:flex;align-items:center;gap:24px;
+  padding:18px 28px 14px;
+  border-bottom:1px solid var(--hairline);
+  background:linear-gradient(180deg,#ffffff,#f2f1ee);
+}
+header h1{font-size:15px;font-weight:700;letter-spacing:.2em;}
+header .sub{
+  font-family:Georgia,serif;font-style:italic;color:var(--mid);
+  font-size:12px;margin-left:8px;
+}
+header .meta{
+  margin-left:auto;display:flex;align-items:center;gap:18px;
+  font-size:10px;letter-spacing:.15em;color:var(--mid);text-transform:uppercase;
+}
+header .meta b{color:var(--ink);}
+.pulse-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--ink);margin-right:6px;
+  animation:beat 2.4s infinite;
+}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.25}}
+
+#observatory{
+  display:grid;
+  grid-template-columns:320px 1fr 340px;
+  grid-template-rows:1fr auto;
+  grid-template-areas:
+    "index landscape cohort"
+    "safety  safety    safety";
+  height:calc(100vh - 64px);
+}
+.panel{border-right:1px solid var(--hairline);overflow-y:auto;background:var(--paper);}
+#indexPanel{grid-area:index;}
+#landscapePanel{grid-area:landscape;}
+#cohortPanel{grid-area:cohort;border-left:1px solid var(--hairline);}
+#safetyPanel{grid-area:safety;border-top:1px solid var(--hairline);}
+
+.panel-head{
+  padding:14px 18px 10px;
+  border-bottom:1px solid var(--hairline);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-head h2{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;}
+.panel-head .rule{flex:1;height:1px;background:var(--hairline);margin:0 12px;}
+.panel-body{padding:14px 18px;}
+
+#search{
+  width:100%;padding:8px 10px;margin-bottom:10px;
+  font-family:inherit;font-size:12px;
+  border:1px solid var(--hairline);background:var(--paper);color:var(--ink);
+  border-radius:var(--radius);
+}
+#search:focus{outline:none;border-color:var(--ink);}
+table.idx{width:100%;border-collapse:collapse;font-size:11px;}
+table.idx th{
+  text-align:left;font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--mid);font-weight:700;padding:6px 6px;border-bottom:1px solid var(--hairline);
+}
+table.idx td{padding:8px 6px;border-bottom:1px solid var(--hairline);vertical-align:top;cursor:pointer;}
+table.idx tbody tr:hover{background:#f0efec;}
+table.idx tbody tr.active{background:var(--ink);color:var(--paper);}
+table.idx tbody tr.active .stamp{color:var(--paper);border-color:var(--paper);}
+.alias{font-weight:700;}
+.date{font-family:Georgia,serif;font-style:italic;font-size:10px;color:var(--mid);}
+.flagdot{display:inline-block;width:6px;height:6px;background:var(--severe);border-radius:50%;margin-right:3px;}
+
+.stamp{
+  display:inline-block;
+  font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  border:1.5px solid var(--ink);padding:2px 6px;border-radius:3px;
+  transform:rotate(-2deg);
+}
+.stamp.MINIMAL{border-color:#999;color:#999;transform:rotate(1deg);}
+.stamp.MILD{border-color:var(--mid);color:var(--mid);}
+.stamp.MODERATE{border-color:var(--ink);color:var(--ink);transform:rotate(-3deg);}
+.stamp.SEVERE{border-color:var(--severe);color:var(--severe);transform:rotate(-4deg) scale(1.05);}
+.stamp.CRISIS{border-color:var(--severe);color:var(--severe);transform:rotate(-6deg) scale(1.1);}
+
+.land-grid{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:22px;}
+@media(max-width:1100px){.land-grid{grid-template-columns:1fr;}}
+.radar-wrap{border:1px solid var(--hairline);padding:10px;background:linear-gradient(180deg,#fff,#f7f6f3);}
+.radar-wrap canvas{width:100%;display:block;}
+.radar-caption{font-family:Georgia,serif;font-style:italic;font-size:11px;color:var(--mid);margin-top:8px;text-align:center;}
+
+.block{margin-bottom:22px;}
+.block h3{
+  font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  border-bottom:1px solid var(--hairline);padding-bottom:6px;margin-bottom:10px;
+}
+.note{font-family:Georgia,serif;font-style:italic;color:var(--mid);font-size:12px;line-height:1.6;}
+
+.blend-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.blend-label{width:150px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.blend-track{flex:1;height:14px;background:#efeeeb;border:1px solid var(--hairline);}
+.blend-fill{height:100%;background:repeating-linear-gradient(135deg,var(--ink) 0 3px,#3a3a3a 3px 6px);}
+.blend-pct{width:44px;text-align:right;font-size:11px;font-variant-numeric:tabular-nums;}
+
+table.inst{width:100%;border-collapse:collapse;font-size:11px;}
+table.inst th{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);text-align:left;padding:5px 8px;border-bottom:1px solid var(--ink);}
+table.inst td{padding:7px 8px;border-bottom:1px solid var(--hairline);font-variant-numeric:tabular-nums;}
+table.inst td.score{font-weight:700;font-size:13px;}
+
+.flags-list{list-style:none;}
+.flags-list li{
+  padding:6px 0 6px 16px;position:relative;border-bottom:1px dotted var(--hairline);
+  font-size:11px;
+}
+.flags-list li::before{content:"◆";position:absolute;left:0;font-size:8px;top:9px;}
+#readOutput{
+  min-height:90px;padding:12px;border:1px solid var(--hairline);
+  background:#f7f6f3;font-family:Georgia,serif;font-style:italic;font-size:12.5px;line-height:1.75;
+  white-space:pre-wrap;
+}
+.caret{display:inline-block;width:7px;height:14px;background:var(--ink);vertical-align:-2px;animation:beat 1s infinite;}
+
+.histo{margin-bottom:16px;}
+.histo h4{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+.histo .bar-row{display:flex;align-items:flex-end;gap:2px;height:44px;border-bottom:1px solid var(--hairline);}
+.histo .col{flex:1;background:var(--ink);opacity:.85;min-height:1px;}
+.freq-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px dotted var(--hairline);}
+.freq-row b{font-variant-numeric:tabular-nums;}
+
+#safetyPanel .panel-body{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;}
+.safety-list{display:flex;gap:10px;flex-wrap:wrap;}
+.safety-card{
+  border:1.5px solid var(--severe);padding:8px 12px;border-radius:3px;
+  transform:rotate(-.5deg);font-size:11px;cursor:pointer;background:var(--paper);
+}
+.safety-card:hover{background:#f5efef;}
+.safety-card .nm{font-weight:700;letter-spacing:.05em;}
+.safety-card .rs{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--severe);margin-top:3px;}
+.disclaimer{
+  font-family:Georgia,serif;font-style:italic;font-size:11px;color:var(--mid);
+  border:1px dashed var(--hairline);padding:10px 14px;max-width:340px;line-height:1.6;
+}
+
+#crisis{
+  position:fixed;inset:0;background:rgba(17,17,17,.88);z-index:50;
+  display:none;align-items:center;justify-content:center;
+}
+#crisis.open{display:flex;}
+#crisis .box{
+  background:var(--paper);border:2px solid var(--severe);max-width:480px;padding:34px 40px;text-align:center;
+}
+#crisis h2{font-size:13px;letter-spacing:.2em;margin-bottom:14px;color:var(--severe);}
+#crisis p{font-family:Georgia,serif;font-style:italic;font-size:13px;line-height:1.8;margin-bottom:10px;}
+#crisis .num{font-family:inherit;font-style:normal;font-weight:700;font-size:20px;letter-spacing:.1em;}
+
+@keyframes scanline{
+  0%{background:linear-gradient(180deg,rgba(17,17,17,0) 0%,rgba(17,17,17,.14) 0%,rgba(17,17,17,0) 8%);}
+  100%{background:linear-gradient(180deg,rgba(17,17,17,0) 92%,rgba(17,17,17,.14) 100%,rgba(17,17,17,0) 100%);}
+}
+tr.scanning{animation:scanline 1.1s ease-out 3;}
+
+@keyframes expunge{
+  0%{opacity:0;transform:scale(3) rotate(-25deg);}
+  55%{opacity:1;transform:scale(1) rotate(-12deg);}
+  100%{opacity:1;transform:scale(1.05) rotate(-12deg);}
+}
+.expunged-stamp{
+  position:fixed;top:45%;left:50%;z-index:60;pointer-events:none;
+  font-size:64px;font-weight:900;letter-spacing:.25em;color:var(--severe);
+  border:6px solid var(--severe);padding:14px 34px;border-radius:6px;
+  animation:expunge .7s cubic-bezier(.2,1.4,.4,1) forwards;opacity:0;
+}
+
+.empty-state{
+  padding:60px 30px;text-align:center;font-family:Georgia,serif;font-style:italic;
+  color:var(--mid);font-size:13px;line-height:2;
+}
+.auth-box{max-width:300px;margin:40px auto;border:1px solid var(--hairline);padding:20px;}
+.auth-box input{display:block;width:100%;padding:8px;margin-bottom:8px;border:1px solid var(--hairline);background:var(--paper);color:var(--ink);border-radius:var(--radius);font-family:inherit;font-size:12px;}
+.auth-box .gloss{width:100%;}
+
+@media print{
+  header .gloss,#indexPanel,#cohortPanel,.no-print{display:none!important;}
+  #observatory{display:block;height:auto;}
+  #landscapePanel,#safetyPanel{border:none;overflow:visible;}
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--hairline);}
+::-webkit-scrollbar-track{background:transparent;}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<header>
+  <h1>MIRROR <span style="color:var(--mid)">—</span> OBSERVATORY</h1>
+  <span class="sub">respondent landscape, read with clinical restraint</span>
+  <div class="meta">
+    <span><span class="pulse-dot"></span><b id="respCount">0</b> respondents</span>
+    <span>last scan <b id="lastScan">—</b></span>
+    <button class="gloss" id="darkBtn">Dark</button>
+  </div>
+</header>
+
+<div id="authGate" style="display:none">
+  <div class="auth-box">
+    <h3 style="font-size:10px;letter-spacing:.2em;margin-bottom:12px;">ADMIN ACCESS</h3>
+    <input type="email" id="authEmail" placeholder="admin@mirror.app" autocomplete="username">
+    <input type="password" id="authPass" placeholder="password" autocomplete="current-password">
+    <button class="gloss" id="authBtn" style="margin-top:6px;">Enter Observatory</button>
+    <p class="note" id="authMsg" style="margin-top:10px;font-size:10px;"></p>
+  </div>
+</div>
+
+<div id="configGate" style="display:none">
+  <div class="auth-box">
+    <h3 style="font-size:10px;letter-spacing:.2em;margin-bottom:12px;">FIREBASE NOT CONFIGURED</h3>
+    <p class="note" style="font-size:11px;line-height:1.7">
+      Open this file and fill in <b style="font-family:monospace;font-style:normal">firebaseConfig</b>
+      (apiKey, authDomain, projectId, etc.) in the script section, then reload.
+    </p>
+  </div>
+</div>
+
+<div id="observatory" style="display:none">
+
+  <section class="panel" id="indexPanel">
+    <div class="panel-head"><h2>Respondent Index</h2><div class="rule"></div><span style="font-size:9px;color:var(--mid);letter-spacing:.15em;" id="idxMode">LIVE</span></div>
+    <div class="panel-body">
+      <input id="search" type="search" placeholder="Search name, alias, archetype, flag…">
+      <table class="idx">
+        <thead><tr><th>Respondent</th><th>Top Archetype</th><th>PHQ-9</th><th>GAD-7</th><th></th></tr></thead>
+        <tbody id="idxBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="landscapePanel">
+    <div class="panel-head">
+      <h2>Landscape</h2><div class="rule"></div>
+      <button class="gloss no-print" id="theReadBtn">The Read</button>
+      <button class="gloss no-print" id="exportBtn">Export PDF</button>
+      <button class="gloss danger no-print" id="deleteBtn">Expunge</button>
+    </div>
+    <div class="panel-body" id="landBody">
+      <div class="empty-state">Select a respondent from the index.</div>
+    </div>
+  </section>
+
+  <section class="panel" id="cohortPanel">
+    <div class="panel-head"><h2>Cohort Analytics</h2><div class="rule"></div><button class="gloss toggled" id="cohortToggle">On</button></div>
+    <div class="panel-body" id="cohortBody"></div>
+  </section>
+
+  <section class="panel" id="safetyPanel">
+    <div class="panel-head"><h2>Safety Protocol</h2><div class="rule"></div><button class="gloss danger" id="crisisBtn">Crisis Resources</button></div>
+    <div class="panel-body">
+      <div style="min-width:280px">
+        <h3 style="font-size:9px;letter-spacing:.2em;margin-bottom:10px;">RED-FLAGGED RESPONDENTS</h3>
+        <div class="safety-list" id="safetyList"><span class="note">None at present.</span></div>
+      </div>
+      <div class="disclaimer">This is screening data, not diagnosis. Instrument scores indicate symptom bands suitable for referral consideration only. Any respondent flagged under Safety Protocol should be reviewed by a qualified clinician before further contact.</div>
+    </div>
+  </section>
+</div>
+
+<div id="crisis">
+  <div class="box">
+    <h2>CRISIS PROTOCOL</h2>
+    <p>If a respondent endorses self-harm intent (PHQ-9 item 9 &gt; 0) or presents in acute distress, follow your institution's escalation pathway immediately.</p>
+    <p class="num">988 — Suicide &amp; Crisis Lifeline</p>
+    <p class="num">911 — Emergency Services</p>
+    <p>Do not leave the respondent unaccompanied. Document the encounter verbatim.</p>
+    <button class="gloss" style="margin-top:14px" onclick="document.getElementById('crisis').classList.remove('open')">Acknowledge</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, deleteDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ---- FIREBASE CONFIG: replace with your project's values ---------- */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const AXES = ["Structural","Emotive","Agency","Attachment","Temporal","Disclosure"];
+const INST = [
+  {key:"phq", label:"PHQ-9",  bands:[0,5,10,15,20], names:["MINIMAL","MILD","MODERATE","MODERATE-SEVERE","SEVERE"]},
+  {key:"gad", label:"GAD-7",  bands:[0,5,10,15],    names:["MINIMAL","MILD","MODERATE","SEVERE"]},
+  {key:"ecr", label:"ECR-R",  bands:[0,24,48],      names:["LOW","MODERATE","HIGH ATTACHMENT ANXIETY/AVOIDANCE"]},
+  {key:"ace", label:"ACE",    bands:[0,1,4],        names:["NONE-LOW","MODERATE","HIGH (≥4)"]},
+  {key:"pss", label:"PSS-10", bands:[0,14,20,27],   names:["LOW","MODERATE","HIGH","VERY HIGH"]},
+  {key:"ipip",label:"IPIP-NEO-50", bands:[0],       names:["BIG-5 PROFILE"]},
+];
+
+let db=null, auth=null, unsubscribe=null;
+let respondents=[];
+let selectedId=null;
+let cohortHidden=false;
+let typing=null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtDate = iso => { try{ return new Date(iso).toLocaleString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){ return "—"; } };
+const shortId = id => "#"+String(id).slice(-5).toUpperCase();
+
+function bandOf(instKey, score){
+  const def = INST.find(i=>i.key===instKey);
+  if(instKey==="ipip") return {name:"BIG-5", stamp:"ok"};
+  let idx=0;
+  for(let i=0;i<def.bands.length;i++){ if(score>=def.bands[i]) idx=i; }
+  const name = def.names[Math.min(idx, def.names.length-1)];
+  let stamp="MINIMAL";
+  if(instKey==="phq"||instKey==="gad") stamp = score>=15?"SEVERE":score>=10?"MODERATE":score>=5?"MILD":"MINIMAL";
+  else if(instKey==="ace") stamp = score>=4?"SEVERE":score>=1?"MILD":"MINIMAL";
+  else if(instKey==="pss") stamp = score>=27?"SEVERE":score>=20?"MODERATE":score>=14?"MILD":"MINIMAL";
+  else if(instKey==="ecr") stamp = score>=48?"MODERATE":"MILD";
+  return {name, stamp};
+}
+const riskFlags = r => {
+  const f=[], i=r.instruments||{};
+  const phq = typeof i.phq==="object" ? i.phq.score : i.phq;
+  const item9 = typeof i.phq==="object" ? (i.phq.item9??0) : 0;
+  if(item9>0 || phq>=20) f.push("PHQ-9 CRISIS BAND");
+  if(i.gad>=15) f.push("GAD-7 SEVERE");
+  if(i.ace>=4)  f.push("ACE ≥ 4");
+  return f;
+};
+
+/* ---------- dark mode ---------- */
+$("#darkBtn").addEventListener("click", ()=>{
+  document.documentElement.classList.toggle("dark");
+  $("#darkBtn").classList.toggle("toggled");
+  setTimeout(paintRadar, 60);
+});
+
+/* ---------- boot ---------- */
+const configured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+if(!configured){
+  $("#configGate").style.display="block";
+} else {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app); db = getFirestore(app);
+  $("#authGate").style.display="block";
+  $("#authBtn").addEventListener("click", doLogin);
+  $("#authPass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+  onAuthStateChanged(auth, u=>{
+    if(u){
+      $("#authGate").style.display="none";
+      $("#observatory").style.display="grid";
+      subscribe();
+    } else {
+      $("#authGate").style.display="block";
+      $("#observatory").style.display="none";
+      if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+    }
+  });
+}
+function doLogin(){
+  signInWithEmailAndPassword(auth, $("#authEmail").value.trim(), $("#authPass").value)
+    .catch(e=>{ $("#authMsg").textContent = e.message.replace("Firebase:","").trim(); });
+}
+function subscribe(){
+  const q = query(collection(db,"respondents"), orderBy("createdAt","desc"));
+  const seen = new Set();
+  unsubscribe = onSnapshot(q, snap=>{
+    let fresh=[];
+    snap.forEach(d=> fresh.push({id:d.id, ...d.data()}));
+    fresh.forEach(r=>{ if(!seen.has(r.id)){ r._new=true; seen.add(r.id); } });
+    respondents = fresh;
+    $("#respCount").textContent = respondents.length;
+    $("#lastScan").textContent = fmtDate(new Date().toISOString());
+    renderAll();
+  }, err=>{ $("#idxMode").textContent="ERR"; console.error(err); });
+}
+
+/* ---------- index ---------- */
+function renderIndex(){
+  const q = $("#search").value.trim().toLowerCase();
+  const rows = respondents.filter(r=>{
+    if(!q) return true;
+    const hay = [r.name,r.alias,...(r.archetypes||[]).map(a=>a.name||a),...(r.flags||[])].join(" ").toLowerCase();
+    return hay.includes(q);
+  });
+  $("#idxBody").innerHTML = rows.map(r=>{
+    const phqRaw = r.instruments?.phq;
+    const gadRaw = r.instruments?.gad;
+    const phq = bandOf("phq", typeof phqRaw==="object"? phqRaw.score : phqRaw ?? 0);
+    const gad = bandOf("gad", typeof gadRaw==="object"? gadRaw.score : gadRaw ?? 0);
+    const rf = riskFlags(r).length;
+    const top = r.archetypes?.[0]?.name ?? "—";
+    return `<tr data-id="${esc(r.id)}" class="${r.id===selectedId?'active':''} ${r._new?'scanning':''}">
+      <td><div class="alias">${esc(r.name||shortId(r.id))}</div>
+          <div class="date">${esc(fmtDate(r.createdAt))}${r.alias?" · "+esc(r.alias):""}</div></td>
+      <td style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;">${esc(top)}</td>
+      <td><span class="stamp ${phq.stamp}">${phq.stamp}</span></td>
+      <td><span class="stamp ${gad.stamp}">${gad.stamp}</span></td>
+      <td>${rf? `<span title="${riskFlags(r).join(" · ")}">${'<span class="flagdot"></span>'.repeat(Math.min(rf,3))}</span>`:""}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="5" class="note" style="padding:20px 6px;">No respondents match.</td></tr>`;
+  $("#idxBody").querySelectorAll("tr[data-id]").forEach(tr=>{
+    tr.addEventListener("click", ()=>{ selectedId=tr.dataset.id; renderAll(); });
+  });
+  respondents.forEach(r=> r._new=false);
+}
+$("#search").addEventListener("input", renderIndex);
+
+/* ---------- landscape ---------- */
+function renderLandscape(){
+  const body = $("#landBody");
+  const r = respondents.find(x=>x.id===selectedId);
+  if(!r){ body.innerHTML = `<div class="empty-state" style="grid-column:1/-1">Select a respondent from the index.</div>`; return; }
+  const att = (r.attachment||"—").toUpperCase();
+  const blends = (r.archetypes||[]).filter(a=>a.pct>0).slice(0,3);
+  body.innerHTML = `
+  <div class="land-grid">
+    <div>
+      <div class="radar-wrap">
+        <canvas id="radar" width="640" height="560"></canvas>
+        <div class="radar-caption">Figure 1 — six-axis respondent signature, normalized 0–1</div>
+      </div>
+      <div class="block" style="margin-top:18px">
+        <h3>Attachment Read</h3>
+        <p style="font-size:26px;font-weight:100;letter-spacing:.25em;margin:6px 0 4px;">${esc(att)}</p>
+        <p class="note">${esc(attachmentNote(r.attachment))}</p>
+      </div>
+    </div>
+    <div>
+      <div class="block">
+        <h3>Identity Blend</h3>
+        ${blends.map(b=>`<div class="blend-row">
+          <div class="blend-label">${esc(b.name)}</div>
+          <div class="blend-track"><div class="blend-fill" style="width:${b.pct}%"></div></div>
+          <div class="blend-pct">${b.pct}%</div>
+        </div>`).join("")}
+      </div>
+      <div class="block">
+        <h3>Instrument Scores</h3>
+        <table class="inst">
+          <thead><tr><th>Instrument</th><th>Score</th><th>Band</th><th>Severity</th></tr></thead>
+          <tbody>${INST.map(d=>{
+            const raw = r.instruments?.[d.key];
+            const score = d.key==="ipip" ? (raw? Object.values(raw).reduce((a,b)=>a+b,0)+"/250" : "—")
+                                         : (typeof raw==="object" ? raw.score : raw ?? "—");
+            const sc  = d.key==="ipip" ? 0 : (typeof raw==="object" ? raw.score : raw ?? 0);
+            const b = bandOf(d.key, sc);
+            const flag = (d.key==="phq" && typeof raw==="object" && (raw.item9??0)>0)
+              ? ` <span class="stamp CRISIS">ITEM 9</span>` : "";
+            return `<tr><td style="letter-spacing:.08em;">${d.label}</td>
+              <td class="score">${esc(score)}</td>
+              <td class="note" style="font-size:11px">${esc(b.name)}</td>
+              <td><span class="stamp ${b.stamp}">${b.stamp}</span>${flag}</td></tr>`;
+          }).join("")}
+          ${r.instruments?.ipip ? `<tr><td colspan="4" style="font-size:10px;color:var(--mid);padding-top:8px;">IPIP-NEO-50 facets — O:${r.instruments.ipip.O} C:${r.instruments.ipip.C} E:${r.instruments.ipip.E} A:${r.instruments.ipip.A} N:${r.instruments.ipip.N}</td></tr>`:""}
+          </tbody>
+        </table>
+      </div>
+      <div class="block">
+        <h3>Detected Flags</h3>
+        <ul class="flags-list">${(r.flags||[]).map(f=>`<li>${esc(f)}</li>`).join("") || '<li class="note">No fc/fw patterns detected.</li>'}</ul>
+      </div>
+      <div class="block">
+        <h3>Behavioral Observations</h3>
+        <div id="readOutput" class="note">Press "THE READ" to play the observational transcript.</div>
+        <p class="note" style="margin-top:6px;font-size:10px;">timing — median ${esc(r.timing?.medianMs ?? "—")} ms · variance: ${esc(r.timing?.variance ?? "—")}</p>
+      </div>
+    </div>
+  </div>`;
+  requestAnimationFrame(paintRadar);
+}
+function attachmentNote(a){
+  return { secure:"Coherent self-model; responses are internally consistent under re-asking.",
+    anxious:"Monitoring signature — re-checks, re-reads, reassurance-seeking latency clusters.",
+    avoidant:"Distance-keeping; affect items answered fast, precision items slow.",
+    disorganized:"Approach–avoid oscillation; expect contradiction spikes in fw patterns." }[a] || "Insufficient attachment evidence in this response.";
+}
+
+/* ---------- radar ---------- */
+function paintRadar(){
+  const cv = document.getElementById("radar"); if(!cv) return;
+  const ctx = cv.getContext("2d");
+  const W=cv.width, H=cv.height, cx=W/2, cy=H/2+10, R=Math.min(W,H)/2-70;
+  const r0 = respondents.find(x=>x.id===selectedId);
+  const vals = AXES.map(a => (r0?.axes?.[a] ?? 0));
+  const dark = document.documentElement.classList.contains("dark");
+  const INK = dark ? "#0e0e0e" : "#111111";
+  const PAPER = dark ? "#020203" : "#fdfdfb";
+  const HAIR = dark ? "#36383d" : "#c9c7c2";
+  const MID  = dark ? "#888888" : "#777777";
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = PAPER; ctx.fillRect(0,0,W,H);
+  const n = AXES.length;
+  const pt = (i,v)=>{ const ang=-Math.PI/2 + i*2*Math.PI/n;
+    return [cx+Math.cos(ang)*R*v, cy+Math.sin(ang)*R*v]; };
+  for(let ring=1; ring<=4; ring++){
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){ const [x,y]=pt(i%n, ring/4); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.strokeStyle=HAIR; ctx.lineWidth=1; ctx.stroke();
+  }
+  ctx.font="600 15px 'Helvetica Neue',Helvetica,sans-serif";
+  ctx.fillStyle=INK; ctx.textAlign="center"; ctx.textBaseline="middle";
+  AXES.forEach((a,i)=>{
+    const [x,y]=pt(i,1); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y);
+    ctx.strokeStyle=HAIR; ctx.stroke();
+    const [lx,ly]=pt(i,1.19);
+    ctx.save(); ctx.translate(lx,ly);
+    ctx.fillText(a.toUpperCase().split("").join(" "), 0, 0); ctx.restore();
+  });
+  if(!cohortHidden && respondents.length>1){
+    const avg = AXES.map(a=>{
+      const xs = respondents.map(r=>r.axes?.[a]).filter(v=>typeof v==="number");
+      return xs.length? xs.reduce((s,v)=>s+v,0)/xs.length : 0;
+    });
+    ctx.beginPath();
+    avg.forEach((v,i)=>{ const [x,y]=pt(i,v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.closePath();
+    ctx.setLineDash([5,5]); ctx.strokeStyle=MID; ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.beginPath();
+  vals.forEach((v,i)=>{ const [x,y]=pt(i,v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.closePath();
+  ctx.fillStyle="rgba(17,17,17,.08)"; ctx.fill();
+  ctx.strokeStyle=INK; ctx.lineWidth=2; ctx.stroke();
+  vals.forEach((v,i)=>{ const [x,y]=pt(i,v);
+    ctx.beginPath(); ctx.arc(x,y,3.5,0,7); ctx.fillStyle=INK; ctx.fill();
+    ctx.font="11px 'Helvetica Neue',monospace"; ctx.fillText(v.toFixed(2), x, y-13);
+  });
+  ctx.font="italic 12px Georgia,serif"; ctx.fillStyle=MID;
+  ctx.fillText(cohortHidden? "— individual signature —" : "— solid: respondent · dashed: cohort mean —", cx, H-12);
+}
+window.addEventListener("resize", ()=> paintRadar());
+
+/* ---------- cohort ---------- */
+function renderCohort(){
+  const body = $("#cohortBody");
+  if(cohortHidden){ body.innerHTML = `<p class="note">Cohort overlay suspended.</p>`; paintRadar(); return; }
+  if(!respondents.length){ body.innerHTML = `<p class="note">No cohort data yet.</p>`; return; }
+  const hist = (label, vals, bins)=>{
+    const counts = new Array(bins.length).fill(0);
+    vals.forEach(v=>{ for(let i=bins.length-1;i>=0;i--){ if(v>=bins[i]){ counts[i]++; break; } } });
+    const max = Math.max(...counts,1);
+    return `<div class="histo"><h4>${label} · n=${vals.length}</h4>
+      <div class="bar-row">${counts.map((c,i)=>`<div class="col" title="${bins[i]}+: ${c}" style="height:${Math.max(4,(c/max)*100)}%"></div>`).join("")}</div>
+      <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--mid);margin-top:2px;"><span>${bins[0]}</span><span>${bins[bins.length-1]}+</span></div></div>`;
+  };
+  const num = k => respondents.map(r=>{ const x=r.instruments?.[k]; return typeof x==="object"? x.score : x; }).filter(v=>typeof v==="number");
+  const freq = {};
+  respondents.forEach(r=>(r.archetypes||[]).slice(0,1).forEach(a=>{ const n=a.name||a; freq[n]=(freq[n]||0)+1; }));
+  const freqRows = Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(([n,c])=>
+    `<div class="freq-row"><span style="letter-spacing:.08em;text-transform:uppercase;font-size:10px;">${esc(n)}</span><b>${c} · ${Math.round(c/respondents.length*100)}%</b></div>`).join("");
+  const item9 = respondents.filter(r=>{ const x=r.instruments?.phq; return (typeof x==="object"&&x.item9>0); }).length;
+  const phq20 = num("phq").filter(s=>s>=20).length;
+  const gad15 = num("gad").filter(s=>s>=15).length;
+  const ace4  = num("ace").filter(s=>s>=4).length;
+  const prev = [["PHQ-9 item 9 endorsed",item9],["PHQ-9 ≥ 20",phq20],["GAD-7 ≥ 15",gad15],["ACE ≥ 4",ace4]].map(([l,c])=>
+    `<div class="freq-row"><span style="font-size:10px;">${l}</span><b>${c} · ${Math.round(c/Math.max(respondents.length,1)*100)}%</b></div>`).join("");
+  body.innerHTML =
+    hist("PHQ-9", num("phq"), [0,5,10,15,20]) +
+    hist("GAD-7", num("gad"), [0,5,10,15]) +
+    hist("ACE",  num("ace"), [0,1,4]) +
+    hist("PSS-10", num("pss"), [0,14,20,27]) +
+    `<div class="block"><h3 style="font-size:9px;letter-spacing:.15em;color:var(--mid);margin:12px 0 6px;">ARCHETYPE FREQUENCY (TOP BLEND)</h3>${freqRows||'<p class="note">—</p>'}</div>`+
+    `<div class="block"><h3 style="font-size:9px;letter-spacing:.15em;color:var(--mid);margin:12px 0 6px;">RISK FLAG PREVALENCE</h3>${prev}</div>`;
+  paintRadar();
+}
+$("#cohortToggle").addEventListener("click", ()=>{
+  cohortHidden = !cohortHidden;
+  $("#cohortToggle").textContent = cohortHidden? "Off" : "On";
+  $("#cohortToggle").classList.toggle("toggled", !cohortHidden);
+  renderCohort();
+});
+
+/* ---------- safety ---------- */
+function renderSafety(){
+  const flagged = respondents.filter(r=>riskFlags(r).length);
+  $("#safetyList").innerHTML = flagged.map(r=>`
+    <div class="safety-card" data-id="${esc(r.id)}">
+      <div class="nm">${esc(r.name||shortId(r.id))}</div>
+      <div class="rs">${riskFlags(r).join(" · ")}</div>
+    </div>`).join("") || `<span class="note">None at present.</span>`;
+  $("#safetyList").querySelectorAll(".safety-card").forEach(c=>c.addEventListener("click",()=>{ selectedId=c.dataset.id; renderAll(); }));
+}
+$("#crisisBtn").addEventListener("click", ()=> $("#crisis").classList.add("open"));
+$("#crisis").addEventListener("click", e=>{ if(e.target.id==="crisis") e.target.classList.remove("open"); });
+
+/* ---------- interactions ---------- */
+function typewrite(el, lines){
+  if(typing) clearInterval(typing);
+  const text = lines.join("\n\n");
+  let i = 0;
+  typing = setInterval(()=>{
+    i += 1 + (Math.random()<.12?1:0);
+    el.innerHTML = esc(text.slice(0,i)) + '<span class="caret"></span>';
+    if(i>=text.length){ clearInterval(typing); typing=null; el.innerHTML = esc(text); }
+  }, 26);
+}
+$("#theReadBtn").addEventListener("click", ()=>{
+  const r = respondents.find(x=>x.id===selectedId); if(!r) return;
+  const el = document.getElementById("readOutput"); if(!el) return;
+  typewrite(el, r.readings?.length? r.readings : ["No observational transcript recorded for this respondent."]);
+});
+$("#exportBtn").addEventListener("click", ()=>{
+  const r = respondents.find(x=>x.id===selectedId);
+  if(!r){ alert("Select a respondent first."); return; }
+  if(window.jspdf?.jsPDF){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:"pt",format:"letter"});
+    const M=56; let y=0;
+    doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(17,17,17);
+    doc.text("MIRROR — OBSERVATORY", M, y=64);
+    doc.setFont("courier","normal"); doc.setFontSize(9); doc.setTextColor(120,120,120);
+    doc.text("PROFESSIONAL SUMMARY · SCREENING DATA, NOT DIAGNOSIS", M, y+=18);
+    doc.setDrawColor(200); doc.line(M, y+=8, 556, y);
+    doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(17,17,17);
+    doc.text(`${r.name||shortId(r.id)}${r.alias? "  ·  "+r.alias:""}`, M, y+=26);
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(80,80,80);
+    doc.text(`Scanned ${fmtDate(r.createdAt)}    Top archetype: ${r.archetypes?.[0]?.name||"—"}    Attachment: ${(r.attachment||"—").toUpperCase()}`, M, y+=17);
+    y+=14; doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.text("INSTRUMENT SCORES", M, y); y+=6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5);
+    INST.forEach(d=>{
+      const raw=r.instruments?.[d.key];
+      const sc = d.key==="ipip" ? 0 : (typeof raw==="object"? raw.score : raw ?? 0);
+      const b = bandOf(d.key, sc);
+      const label = d.key==="ipip" ? "IPIP-NEO-50  (facets below)" : `${d.label}:  ${typeof raw==="object"? raw.score : raw ?? "—"} — ${b.name}`;
+      doc.text(label, M, y+=15);
+    });
+    if(r.instruments?.ipip){ const p=r.instruments.ipip; doc.text(`Big-5 facets — O:${p.O} C:${p.C} E:${p.E} A:${p.A} N:${p.N}`, M, y+=15); }
+    y+=12; doc.setFont("helvetica","bold"); doc.text("DETECTED FLAGS", M, y); y+=4;
+    doc.setFont("helvetica","normal");
+    (r.flags||[]).forEach(f=> doc.text("◆  "+f, M, y+=14));
+    y+=14; doc.setFont("helvetica","bold"); doc.text("BEHAVIORAL OBSERVATIONS", M, y); y+=4;
+    doc.setFont("times","italic");
+    (r.readings||[]).forEach(t=>{ doc.splitTextToSize(t, 500).forEach(line=> doc.text(line, M, y+=14)); y+=4; });
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(140,140,140);
+    doc.text("Generated by MIRROR Observatory. Screening data only; not a clinical diagnosis.", M, 742);
+    doc.save(`MIRROR-${(r.name||r.id).replace(/\W+/g,"_")}.pdf`);
+  } else {
+    window.print();
+  }
+});
+$("#deleteBtn").addEventListener("click", ()=>{
+  const r = respondents.find(x=>x.id===selectedId); if(!r) return;
+  if(!confirm(`Expunge respondent ${r.name||shortId(r.id)}?\nThis action is irreversible.`)) return;
+  const stamp = document.createElement("div");
+  stamp.className="expunged-stamp"; stamp.textContent="EXPUNGED";
+  document.body.appendChild(stamp);
+  setTimeout(()=>{
+    deleteDoc(doc(db,"respondents",r.id)).catch(e=>console.error(e));
+    if(selectedId===r.id) selectedId=null;
+    setTimeout(()=>stamp.remove(), 1600);
+  }, 900);
+});
+
+/* ---------- master ---------- */
+function renderAll(){
+  $("#respCount").textContent = respondents.length;
+  renderIndex(); renderLandscape(); renderCohort(); renderSafety();
+}
+</script>
+</body>
+</html>
